@@ -30,29 +30,29 @@ export const translations: Record<string, Triple> = {
     it: "Travel inbound · Turismo & Business",
     es: "Viajes internos · Ocio y negocios",
   },
-  "Inbound leisure travel & business travel, fully tailored — flights, hotels, cars, guides, translation and everything in between.": {
-    zh: "入境休闲旅游与商务差旅，全程定制——机票、酒店、用车、向导、翻译及一切所需。",
-    it: "Viaggi su misura in Cina per turismo e business — voli, hotel, auto, guide, interpreti e tutto il resto.",
-    es: "Viajes a medida a China para ocio y negocios: vuelos, hoteles, coches, guías, intérpretes y todo lo demás.",
+  "Inbound leisure travel & business travel, fully tailored——premium travel experiences at approachable prices.": {
+    zh: "入境休闲旅游与商务差旅，全程定制——高端旅行体验，亲民价格。",
+    it: "Viaggi inbound su misura per turismo e business — esperienze di viaggio premium a prezzi accessibili.",
+    es: "Viajes a medida para ocio y negocios: experiencias de viaje premium a precios asequibles.",
   },
   "Plan your trip": { zh: "规划您的行程", it: "Pianifica il tuo viaggio", es: "Planifica tu viaje" },
   "Scroll": { zh: "下滑", it: "Scorri", es: "Desliza" },
 
   /* ---------- 公司介绍 ---------- */
-  "We handle China. You enjoy the view.": {
-    zh: "中国事务交给我们，您只管欣赏风景。",
-    it: "Ci pensiamo noi alla Cina. Tu goditi il panorama.",
-    es: "Nosotros nos ocupamos de China. Tú disfruta del paisaje.",
+  "Your Vision of China, Effortlessly Delivered.": {
+    zh: "您心中的中国，轻松为您呈现。",
+    it: "La tua visione della Cina, realizzata senza sforzo.",
+    es: "Tu visión de China, realizada sin esfuerzo.",
   },
-  "An inbound travel agency making China effortless for visitors from abroad — flights, hotels, private cars, bilingual guides, interpreters and every legal arrangement, designed around you.": {
-    zh: "我们是一家入境旅行社，让海外游客的每一次中国之旅都轻松无忧——机票、酒店、专车、双语向导、口译人员及一切合法安排，都围绕您的需求量身定制。",
-    it: "Un'agenzia di viaggi inbound che rende la Cina senza sforzo per i visitatori stranieri — voli, hotel, auto private, guide bilingui, interpreti e ogni dispositivo legale, tutto su misura per te.",
-    es: "Una agencia de viajes receptiva que hace que viajar por China sea fácil para los visitantes extranjeros: vuelos, hoteles, coches privados, guías bilingües, intérpretes y todo trámite legal, diseñado a tu medida.",
+  "Where ancient heritage meets modern ambitious horizon. Whether closing a strategic venture or wandering through misty peaks, we curate every detail for your complete peace of mind.": {
+    zh: "古老文明与现代雄心的交汇之地。无论是促成一场战略合作，还是漫步于云雾缭绕的山峰，我们都为您精心策划每个细节，让您全程安心无忧。",
+    it: "Dove l'antico patrimonio incontra un orizzonte moderno e ambizioso. Che si tratti di chiudere un accordo strategico o di perdersi tra vette avvolte dalla nebbia, curiamo ogni dettaglio per la tua totale serenità.",
+    es: "Donde la herencia ancestral se encuentra con un horizonte moderno y ambicioso. Ya sea cerrando un acuerdo estratégico o paseando entre cimas envueltas en niebla, cuidamos cada detalle para tu total tranquilidad.",
   },
-  "Core journeys — Leisure & Business": {
-    zh: "两大核心——休闲与商务",
-    it: "Due viaggi chiave — turismo e business",
-    es: "Dos viajes clave — ocio y negocios",
+  "Limits — Infinite Horizons, Yours": {
+    zh: "零限制——无尽可能，尽属于你",
+    it: "Limiti — orizzonti infiniti, tuoi",
+    es: "Límites — horizontes infinitos, tuyos",
   },
   "Tailor-made, end-to-end service": {
     zh: "全程定制，一站式服务",
@@ -64,10 +64,10 @@ export const translations: Record<string, Triple> = {
     it: "Assistenza durante tutto il soggiorno",
     es: "Asistencia durante toda tu estancia",
   },
-  "Legal & licensed arrangements": {
-    zh: "合法合规的每一项安排",
-    it: "Dispositivi legali e autorizzati",
-    es: "Trámites legales y con licencia",
+  "Journeys — Endless Inspiration, Endless Return": {
+    zh: "旅程——灵感无限，流连忘返",
+    it: "Viaggi — ispirazione infinita, ritorno assicurato",
+    es: "Viajes — inspiración infinita, ganas de volver",
   },
 
   /* ---------- 出行类型选择 ---------- */
@@ -128,40 +128,40 @@ export const translations: Record<string, Triple> = {
   "Get started": { zh: "立即开始", it: "Inizia", es: "Empezar" },
 
   /* ---------- 服务矩阵 ---------- */
-  "Everything you need, one agency": {
-    zh: "您需要的一切，一家机构全部搞定",
-    it: "Tutto ciò che ti serve, un'unica agenzia",
-    es: "Todo lo que necesitas, una sola agencia",
+  "Your All-in-One Travel Partner": {
+    zh: "您的一站式旅行伙伴",
+    it: "Il tuo partner di viaggio tutto-in-uno",
+    es: "Tu socio de viajes todo en uno",
   },
   "Flights": { zh: "机票", it: "Voli", es: "Vuelos" },
-  "International & domestic flight booking and route planning.": {
-    zh: "国际及国内航班预订与路线规划。",
-    it: "Prenotazione di voli internazionali e nazionali e pianificazione delle rotte.",
-    es: "Reserva de vuelos internacionales y nacionales y planificación de rutas.",
+  "Domestic & international flight bookings with optimal routes.": {
+    zh: "国内及国际航班预订，优选航线。",
+    it: "Prenotazioni di voli nazionali e internazionali con rotte ottimali.",
+    es: "Reservas de vuelos nacionales e internacionales con rutas óptimas.",
   },
   "Hotels": { zh: "酒店", it: "Hotel", es: "Hoteles" },
-  "From 5-star landmarks to boutique stays, matched to your budget.": {
-    zh: "从五星地标到精品民宿，匹配您的预算。",
-    it: "Da hotel a 5 stelle a boutique, selezionati in base al tuo budget.",
-    es: "Desde hoteles de 5 estrellas hasta boutiques, según tu presupuesto.",
+  "Vetted stays from cozy boutique inns to premier landmarks, matched to your style.": {
+    zh: "严选住宿，从温馨的精品客栈到顶级地标酒店，贴合您的品味。",
+    it: "Soggiorni selezionati, da accoglienti boutique hotel a rinomati luoghi di lusso, in linea con il tuo stile.",
+    es: "Estancias seleccionadas, desde acogedoras posadas boutique hasta emblemáticos de lujo, según tu estilo.",
   },
   "Car & Driver": { zh: "专车与司机", it: "Auto e autista", es: "Coche y conductor" },
-  "Private cars with professional drivers, airport to anywhere.": {
-    zh: "专业司机的专车服务，从机场到任何地方。",
-    it: "Auto private con autisti professionisti, dall'aeroporto a qualsiasi destinazione.",
-    es: "Coches privados con conductores profesionales, del aeropuerto a cualquier lugar.",
+  "Chauffeur-driven private rides, anytime, anywhere.": {
+    zh: "专属司机私人用车，随时随地。",
+    it: "Trasferimenti privati con autista, sempre e ovunque.",
+    es: "Trayectos privados con chófer, en cualquier momento y lugar.",
   },
   "Guides": { zh: "向导", it: "Guide", es: "Guías" },
-  "Licensed local guides who speak your language.": {
-    zh: "持牌本地向导，会说您的语言。",
-    it: "Guide locali abilitate che parlano la tua lingua.",
-    es: "Guías locales con licencia que hablan tu idioma.",
+  "Fluent, insider storytellers who bring local culture to life.": {
+    zh: "语言流利、深谙当地的故事讲述者，让本土文化鲜活呈现。",
+    it: "Guide eloquenti e piene di insider knowledge che fanno rivivere la cultura locale.",
+    es: "Guías locuaces y conocedores que hacen vibrar la cultura local.",
   },
   "Translation": { zh: "翻译", it: "Interpretariato", es: "Traducción" },
-  "Interpreters for business meetings, factory visits and events.": {
-    zh: "为商务会议、验厂与活动提供专业口译。",
-    it: "Interpreti per riunioni di lavoro, visite in fabbrica ed eventi.",
-    es: "Intérpretes para reuniones de negocios, visitas a fábricas y eventos.",
+  "On-site interpreters for business meetings and events.": {
+    zh: "为商务会议与活动提供现场口译。",
+    it: "Interpreti sul posto per riunioni di lavoro ed eventi.",
+    es: "Intérpretes in situ para reuniones de negocios y eventos.",
   },
   "Attractions": { zh: "景点", it: "Attrazioni", es: "Atracciones" },
   "Curated sights and off-the-beaten-path recommendations.": {
@@ -170,16 +170,16 @@ export const translations: Record<string, Triple> = {
     es: "Lugares seleccionados y recomendaciones fuera de las rutas turísticas.",
   },
   "Tickets": { zh: "票务", it: "Biglietti", es: "Entradas" },
-  "Attraction, show and high-speed rail tickets, bought for you.": {
-    zh: "景点、演出与高铁票，代您购买。",
-    it: "Biglietti per attrazioni, spettacoli e treni ad alta velocità, acquistati per te.",
-    es: "Entradas de atracciones, espectáculos y trenes de alta velocidad, compradas por ti.",
+  "Instant booking for bullet trains, top shows, and high-demand sites.": {
+    zh: "高铁、热门演出与热门景点门票即时预订。",
+    it: "Prenotazione istantanea di treni ad alta velocità, grandi spettacoli e siti molto richiesti.",
+    es: "Reserva instantánea de trenes de alta velocidad, grandes espectáculos y sitios muy solicitados.",
   },
   "Custom Requests": { zh: "定制需求", it: "Richieste personalizzate", es: "Peticiones a medida" },
-  "Any legal arrangement you need — just tell us.": {
-    zh: "任何合法的需求——只需告诉我们。",
-    it: "Qualsiasi dispositivo legale ti serva — basta dircelo.",
-    es: "Cualquier trámite legal que necesites: solo dinoslo.",
+  "Dedicated concierge for specialized itineraries and complex logistics.": {
+    zh: "专属管家服务，处理特殊行程与复杂后勤安排。",
+    it: "Concierge dedicato per itinerari specializzati e logistica complessa.",
+    es: "Conserjería dedicada para itinerarios especializados y logística compleja.",
   },
 
   /* ---------- 页脚 ---------- */

@@ -427,10 +427,16 @@ export function BusinessWizard() {
                     : "border-dashed border-white/20 hover:-translate-y-1 hover:border-white/50"
                 }`}
               >
-                <div className="relative flex aspect-[4/3] flex-col items-center justify-center gap-2 bg-white/5">
-                  <MapPin size={26} strokeWidth={1.5} className="text-neutral-500" />
-                  <p className="text-sm font-semibold text-neutral-300">{t("Other")}</p>
-                  {lang !== "zh" && <p className="text-xs text-neutral-600">其他</p>}
+                <div className="relative flex aspect-[4/3] flex-col items-center justify-center gap-2 overflow-hidden bg-white/5">
+                  <img
+                    src="media/cities/other.jpg"
+                    alt="Other"
+                    className="absolute inset-0 h-full w-full object-cover opacity-60"
+                  />
+                  <div className="absolute inset-0 bg-black/40" />
+                  <MapPin size={26} strokeWidth={1.5} className="relative text-white/80" />
+                  <p className="relative text-sm font-semibold text-white">{t("Other")}</p>
+                  {lang !== "zh" && <p className="relative text-xs text-white/60">其他</p>}
                 </div>
               </button>
             </div>

@@ -39,20 +39,20 @@ export const hero = {
   titleLines: ["Longview", "China"],
   chineseTagline: "龙观中国",
   subtitle:
-    "Inbound leisure travel & business travel, fully tailored — flights, hotels, cars, guides, translation and everything in between.",
+    "Inbound leisure travel & business travel, fully tailored——premium travel experiences at approachable prices.",
   ctaPrimary: { label: "Plan your trip", target: "#purpose" },
 };
 
 export const manifesto = {
-  heading: "We handle China. You enjoy the view.",
+  heading: "Your Vision of China, Effortlessly Delivered.",
   paragraphs: [
-    "An inbound travel agency making China effortless for visitors from abroad — flights, hotels, private cars, bilingual guides, interpreters and every legal arrangement, designed around you.",
+    "Where ancient heritage meets modern ambitious horizon. Whether closing a strategic venture or wandering through misty peaks, we curate every detail for your complete peace of mind.",
   ],
   stats: [
-    { value: "2", suffix: "", label: "Core journeys — Leisure & Business" },
+    { value: "0", suffix: "", label: "Limits — Infinite Horizons, Yours" },
     { value: "360", suffix: "°", label: "Tailor-made, end-to-end service" },
     { value: "24", suffix: "/7", label: "Support during your whole stay" },
-    { value: "100", suffix: "%", label: "Legal & licensed arrangements" },
+    { value: "∞", suffix: "", label: "Journeys — Endless Inspiration, Endless Return" },
   ],
 };
 
@@ -204,14 +204,14 @@ export const wizardBusiness: WizardStep[] = [
 /** Business 分步引导内容配置（src/components/BusinessWizard.tsx 使用） */
 export const businessContent = {  /** 目标城市九宫格：image 留空则用城市名做视觉占位，有素材后填图片路径 */
   cities: [
-    { name: "Guangzhou", zh: "广州", image: "" },
-    { name: "Shanghai", zh: "上海", image: "" },
-    { name: "Shenzhen", zh: "深圳", image: "" },
-    { name: "Dongguan", zh: "东莞", image: "" },
-    { name: "Yiwu", zh: "义乌", image: "" },
-    { name: "Ningbo", zh: "宁波", image: "" },
-    { name: "Qingdao", zh: "青岛", image: "" },
-    { name: "Beijing", zh: "北京", image: "" },
+    { name: "Guangzhou", zh: "广州", image: "media/cities/guangzhou.jpg" },
+    { name: "Shanghai", zh: "上海", image: "media/cities/shanghai.jpg" },
+    { name: "Shenzhen", zh: "深圳", image: "media/cities/shenzhen.jpg" },
+    { name: "Dongguan", zh: "东莞", image: "media/cities/dongguan.jpg" },
+    { name: "Yiwu", zh: "义乌", image: "media/cities/yiwu.jpg" },
+    { name: "Ningbo", zh: "宁波", image: "media/cities/ningbo.jpg" },
+    { name: "Qingdao", zh: "青岛", image: "media/cities/qingdao.jpg" },
+    { name: "Beijing", zh: "北京", image: "media/cities/beijing.jpg" },
   ],
   purposes: [
     { en: "Exhibition / trade fair", zh: "参加展会" },
@@ -267,14 +267,14 @@ export const businessContent = {  /** 目标城市九宫格：image 留空则用
 export const leisureContent = {
   /** 目标城市大卡片区：image 留空则用城市中文名做视觉占位 */
   cities: [
-    { name: "Shanghai", zh: "上海", image: "" },
-    { name: "Beijing", zh: "北京", image: "" },
-    { name: "Qingdao", zh: "青岛", image: "" },
-    { name: "Harbin", zh: "哈尔滨", image: "" },
-    { name: "Zhangjiajie", zh: "张家界", image: "" },
-    { name: "Shenzhen", zh: "深圳", image: "" },
-    { name: "Chongqing", zh: "重庆", image: "" },
-    { name: "Guangzhou", zh: "广州", image: "" },
+    { name: "Shanghai", zh: "上海", image: "media/cities/shanghai.jpg" },
+    { name: "Beijing", zh: "北京", image: "media/cities/beijing.jpg" },
+    { name: "Qingdao", zh: "青岛", image: "media/cities/qingdao.jpg" },
+    { name: "Harbin", zh: "哈尔滨", image: "media/cities/harbin.jpg" },
+    { name: "Zhangjiajie", zh: "张家界", image: "media/cities/zhangjiajie.jpg" },
+    { name: "Shenzhen", zh: "深圳", image: "media/cities/shenzhen.jpg" },
+    { name: "Chongqing", zh: "重庆", image: "media/cities/chongqing.jpg" },
+    { name: "Guangzhou", zh: "广州", image: "media/cities/guangzhou.jpg" },
   ],
   /** 每个城市的景点卡片：desc 为一句话吸引文案 */
   attractionsByCity: {
@@ -345,16 +345,16 @@ export const leisureContent = {
   ],
 };
 
-export const services = {  heading: "Everything you need, one agency",
+export const services = {  heading: "Your All-in-One Travel Partner",
   items: [
-    { icon: "Plane", title: "Flights", text: "International & domestic flight booking and route planning." },
-    { icon: "Hotel", title: "Hotels", text: "From 5-star landmarks to boutique stays, matched to your budget." },
-    { icon: "Car", title: "Car & Driver", text: "Private cars with professional drivers, airport to anywhere." },
-    { icon: "Users", title: "Guides", text: "Licensed local guides who speak your language." },
-    { icon: "Languages", title: "Translation", text: "Interpreters for business meetings, factory visits and events." },
+    { icon: "Plane", title: "Flights", text: "Domestic & international flight bookings with optimal routes." },
+    { icon: "Hotel", title: "Hotels", text: "Vetted stays from cozy boutique inns to premier landmarks, matched to your style." },
+    { icon: "Car", title: "Car & Driver", text: "Chauffeur-driven private rides, anytime, anywhere." },
+    { icon: "Users", title: "Guides", text: "Fluent, insider storytellers who bring local culture to life." },
+    { icon: "Languages", title: "Translation", text: "On-site interpreters for business meetings and events." },
     { icon: "MapPin", title: "Attractions", text: "Curated sights and off-the-beaten-path recommendations." },
-    { icon: "Ticket", title: "Tickets", text: "Attraction, show and high-speed rail tickets, bought for you." },
-    { icon: "Sparkles", title: "Custom Requests", text: "Any legal arrangement you need — just tell us." },
+    { icon: "Ticket", title: "Tickets", text: "Instant booking for bullet trains, top shows, and high-demand sites." },
+    { icon: "Sparkles", title: "Custom Requests", text: "Dedicated concierge for specialized itineraries and complex logistics." },
   ],
 };
 

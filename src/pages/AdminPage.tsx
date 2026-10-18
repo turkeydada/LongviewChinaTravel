@@ -498,7 +498,7 @@ function OptionManager() {
   };
 
   const inputCls =
-    "w-full rounded-lg border border-white/10 bg-black/60 px-3 py-2 text-sm outline-none focus:border-white/30";
+    "w-full min-w-0 rounded-lg border border-white/10 bg-black/60 px-3 py-2 text-sm outline-none focus:border-white/30";
 
   return (
     <div className="mt-4 space-y-4">
@@ -513,7 +513,7 @@ function OptionManager() {
 
           <div className="mt-4 space-y-2">
             {data[g.key].map((row, i) => (
-              <div key={`${mainKey(row)}-${i}`} className="flex items-center gap-2">
+              <div key={`${mainKey(row)}-${i}`} className="flex flex-wrap items-center gap-2">
                 <div className="flex flex-col">
                   <button
                     type="button"
@@ -571,7 +571,7 @@ function OptionManager() {
           </div>
 
           {/* 添加新选项 */}
-          <div className="mt-3 flex items-center gap-2 border-t border-white/10 pt-3">
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
             <input
               value={draft[g.key].a}
               placeholder={`输入${g.labelA}，回车添加`}
@@ -669,7 +669,7 @@ function LeisureOptionManager() {
   const [status, setStatus] = useState<string>("");
 
   const inputCls =
-    "w-full rounded-lg border border-white/10 bg-black/60 px-3 py-2 text-sm outline-none focus:border-white/30";
+    "w-full min-w-0 rounded-lg border border-white/10 bg-black/60 px-3 py-2 text-sm outline-none focus:border-white/30";
 
   /* ---------- 通用列表操作（城市/服务/人员/兴趣） ---------- */
   const update = (patch: Partial<LData>) => setData((d) => ({ ...d, ...patch }));
@@ -780,7 +780,7 @@ function LeisureOptionManager() {
         {data[key].map((row, i) => {
           const main = (row.en ?? row.name ?? "").trim();
           return (
-            <div key={`${main}-${i}`} className="flex items-center gap-2">
+            <div key={`${main}-${i}`} className="flex flex-wrap items-center gap-2">
               <div className="flex flex-col">
                 <button type="button" title="上移" onClick={() => moveRow(key, i, -1)} className="text-neutral-600 hover:text-white">
                   <ArrowUp size={13} />
@@ -827,7 +827,7 @@ function LeisureOptionManager() {
           <p className="text-xs text-neutral-600">（已清空——保存后该步骤将没有可选按钮）</p>
         )}
       </div>
-      <div className="mt-3 flex items-center gap-2 border-t border-white/10 pt-3">
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
         <input
           value={draft[key].a}
           placeholder={`输入${labelA}，回车添加`}
@@ -919,7 +919,7 @@ function LeisureOptionManager() {
           <div className="mt-4 space-y-4">
             {data.attractions.map((g, gi) => (
               <div key={`${g.city}-${gi}`} className="rounded-xl border border-white/10 bg-black/40 p-4">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <input
                     value={g.city}
                     placeholder="城市英文名（与休闲城市列表一致）"
@@ -936,7 +936,7 @@ function LeisureOptionManager() {
                 </div>
                 <div className="mt-3 space-y-2">
                   {g.items.map((it, i) => (
-                    <div key={`${it.name}-${i}`} className="flex items-center gap-2">
+                    <div key={`${it.name}-${i}`} className="flex flex-wrap items-center gap-2">
                       <input
                         value={it.name ?? ""}
                         placeholder="景点英文名"
@@ -1005,7 +1005,7 @@ function LeisureOptionManager() {
             ))}
           </div>
 
-          <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-4">
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4">
             <input
               value={newCity}
               placeholder="新城市英文名（如 Hangzhou），添加分组"

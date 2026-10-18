@@ -60,21 +60,23 @@ export function Navbar() {
     { label: t("Business travel"), to: "/business" },
   ];
 
-  const scrollTo = (hash: string) => {
+  const scrollTo = (hash: string, delay = 0) => {
     setOpen(false);
     const el = document.querySelector(hash);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+    if (!el) return;
+    // 抽屉菜单收起时的布局动画会打断浏览器平滑滚动 → 菜单打开时延迟到收合后再滚
+    window.setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), delay);
   };
 
   const handleAnchor = (hash: string) => (e: React.MouseEvent) => {
     e.preventDefault();
-    setOpen(false);
     if (location.pathname !== "/") {
       // 子页面：先回主页，再滚动（等页面渲染）
+      setOpen(false);
       window.location.hash = `/`;
-      setTimeout(() => scrollTo(hash), 350);
+      setTimeout(() => scrollTo(hash, 0), 350);
     } else {
-      scrollTo(hash);
+      scrollTo(hash, open ? 320 : 0);
     }
   };
 

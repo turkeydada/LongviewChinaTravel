@@ -97,8 +97,8 @@ function buildSteps(a: Answers): StepDef[] {
     steps.push({ id: "personnel", kind: "personnel", title: "Any requirements for your assistants?", zh: "对服务人员的要求（可多选）" });
   steps.push(
     { id: "food", kind: "food", title: "Any dietary or religious needs?", zh: "饮食特殊要求与宗教（可跳过）", optional: true },
-    { id: "ports", kind: "ports", title: "Entry & exit ports in China", zh: "入境 / 出境口岸（可跳过）", optional: true },
     { id: "interests", kind: "multi", title: "What are you into?", zh: "兴趣偏好（可多选）" },
+    { id: "ports", kind: "ports", title: "Entry & exit ports in China", zh: "入境 / 出境口岸（可跳过）", optional: true },
     { id: "requests", kind: "list", title: "Any other special requests?", zh: "其他特殊要求（可跳过）", optional: true },
     { id: "contact", kind: "contact", title: "How can we reach you?", zh: "联系方式（含随行人）" }
   );
@@ -224,7 +224,7 @@ function isValid(s: StepDef, a: Answers): boolean {
       if (!a.contactName?.trim() || !emailOk) return false;
       const companions: any[] = a.companions ?? [];
       return companions.every(
-        (c) => c.name?.trim() && /^\S+@\S+\.\S+$/.test(c.email ?? "") && c.whatsapp?.trim()
+        (c) => c.name?.trim() && /^\S+@\S+\.\S+$/.test(c.email ?? "")
       );
     }
   }
@@ -469,10 +469,16 @@ export function LeisureWizard() {
                     : "border-dashed border-white/20 hover:-translate-y-1 hover:border-white/50"
                 }`}
               >
-                <div className="relative flex aspect-[4/3] flex-col items-center justify-center gap-2 bg-white/5">
-                  <MapPin size={32} strokeWidth={1.5} className="text-neutral-500" />
-                  <p className="text-base font-semibold text-neutral-300">{t("Other")}</p>
-                  {lang !== "zh" && <p className="text-sm text-neutral-600">其他</p>}
+                <div className="relative flex aspect-[4/3] flex-col items-center justify-center gap-2 overflow-hidden bg-white/5">
+                  <img
+                    src="media/cities/other.jpg"
+                    alt="Other"
+                    className="absolute inset-0 h-full w-full object-cover opacity-60"
+                  />
+                  <div className="absolute inset-0 bg-black/40" />
+                  <MapPin size={32} strokeWidth={1.5} className="relative text-white/80" />
+                  <p className="relative text-base font-semibold text-white">{t("Other")}</p>
+                  {lang !== "zh" && <p className="relative text-sm text-white/60">其他</p>}
                 </div>
               </button>
             </div>
@@ -855,9 +861,7 @@ export function LeisureWizard() {
                 <input type="email" value={answers.contactEmail ?? ""} onChange={(e) => set({ contactEmail: e.target.value })} placeholder={t("you@example.com")} className={field} />
               </div>
               <div>
-                <p className="mb-2 text-xs uppercase tracking-[0.3em] text-neutral-500">
-                  WhatsApp <span className="normal-case tracking-normal text-neutral-600">*</span>
-                </p>
+                <p className="mb-2 text-xs uppercase tracking-[0.3em] text-neutral-500">WhatsApp</p>
                 <input value={answers.contactWhatsapp ?? ""} onChange={(e) => set({ contactWhatsapp: e.target.value })} placeholder={t("+1 555 000 0000")} className={field} />
               </div>
               <div>
@@ -917,7 +921,7 @@ export function LeisureWizard() {
                     <div className="grid gap-3 sm:grid-cols-3">
                       <input value={c.name ?? ""} onChange={(e) => setCompanion(i, { name: e.target.value })} placeholder={`${t("Name · 姓名")} *`} className={compField} />
                       <input value={c.email ?? ""} onChange={(e) => setCompanion(i, { email: e.target.value })} placeholder={`Email *`} className={compField} />
-                      <input value={c.whatsapp ?? ""} onChange={(e) => setCompanion(i, { whatsapp: e.target.value })} placeholder={`WhatsApp *`} className={compField} />
+                      <input value={c.whatsapp ?? ""} onChange={(e) => setCompanion(i, { whatsapp: e.target.value })} placeholder="WhatsApp" className={compField} />
                       <input value={c.age ?? ""} onChange={(e) => setCompanion(i, { age: e.target.value })} placeholder={t("Age · 年龄")} className={compField} />
                       <select value={c.gender ?? ""} onChange={(e) => setCompanion(i, { gender: e.target.value })} className={`${compField} appearance-none`}>
                         <option value="">{t("Gender · 性别")}</option>
