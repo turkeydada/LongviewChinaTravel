@@ -352,6 +352,12 @@ export function LeisureWizard() {
       email: lead.email,
       type: "Leisure",
       details,
+      city: lead.city,
+      dates: lead.dates,
+      contact: lead.contact,
+      message: lead.message,
+      interests: lead.interests,
+      submittedAt: lead.submittedAt,
     });
   };
 

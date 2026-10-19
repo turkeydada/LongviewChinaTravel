@@ -309,6 +309,12 @@ export function BusinessWizard() {
       email: lead.email,
       type: "Business",
       details,
+      city: lead.city,
+      dates: lead.dates,
+      contact: lead.contact,
+      message: lead.message,
+      interests: lead.interests,
+      submittedAt: lead.submittedAt,
     });
   };
 

@@ -74,12 +74,22 @@ function getCloudSince(): number {
   return Number(localStorage.getItem(SINCE_KEY) ?? 0) || 0;
 }
 
-/** 把云端拉到的询盘合并进本地（按 submittedAt + email 去重） */
+/** 把云端拉到的询盘合并进本地（字段补默认值 + 按 submittedAt + email 去重） */
 function mergeLeads(remote: Lead[]): number {
   if (!remote.length) return 0;
   const local = getLeads();
   const seen = new Set(local.map((l) => `${l.submittedAt}|${l.email}`));
-  const fresh = remote.filter((l) => !seen.has(`${l.submittedAt}|${l.email}`));
+  const fresh = remote
+    .filter((l) => l && !seen.has(`${l.submittedAt}|${l.email}`))
+    .map((l) => ({
+      city: "",
+      dates: "",
+      contact: "",
+      message: "",
+      ...l,
+      interests: Array.isArray(l.interests) ? l.interests : [],
+      details: Array.isArray(l.details) ? l.details : [],
+    }));
   if (fresh.length) {
     localStorage.setItem("longview-leads", JSON.stringify([...local, ...fresh]));
   }
@@ -181,7 +191,7 @@ export default function AdminPage() {
         l.contact,
         l.city,
         l.dates,
-        l.interests.join("; "),
+        (l.interests ?? []).join("; "),
         l.message,
         (l.details ?? []).map((d) => `${d.label}: ${d.value}`).join(" | "),
         l.submittedAt,
@@ -414,7 +424,7 @@ export default function AdminPage() {
                     {l.city}
                     {l.dates ? ` · ${l.dates}` : ""}
                   </td>
-                  <td className="px-4 py-3 text-neutral-500">{l.interests.join(", ")}</td>
+                  <td className="px-4 py-3 text-neutral-500">{(l.interests ?? []).join(", ")}</td>
                   <td className="px-4 py-3 text-neutral-500">
                     {new Date(l.submittedAt).toLocaleString()}
                   </td>

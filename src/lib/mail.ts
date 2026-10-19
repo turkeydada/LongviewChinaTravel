@@ -68,6 +68,12 @@ function saveLeadToCloud(lead: {
   email: string;
   type: string;
   details: { label: string; value: string }[];
+  city?: string;
+  dates?: string;
+  contact?: string;
+  message?: string;
+  interests?: string[];
+  submittedAt?: string;
 }): void {
   try {
     void fetch("/api/form", {
@@ -78,6 +84,12 @@ function saveLeadToCloud(lead: {
         email: lead.email,
         type: lead.type.toLowerCase(),
         details: lead.details,
+        city: lead.city ?? "",
+        dates: lead.dates ?? "",
+        contact: lead.contact ?? "",
+        message: lead.message ?? "",
+        interests: lead.interests ?? [],
+        submittedAt: lead.submittedAt ?? new Date().toISOString(),
         hp: "", // 蜜罐：机器人会填充这个隐藏字段，后端检测非空直接丢弃
       }),
       signal: AbortSignal.timeout(6000),
@@ -92,6 +104,13 @@ export async function sendLeadEmail(lead: {
   email: string;
   type: string;
   details: { label: string; value: string }[];
+  /* 以下字段随云端备份一起入库（邮件暂不需要） */
+  city?: string;
+  dates?: string;
+  contact?: string;
+  message?: string;
+  interests?: string[];
+  submittedAt?: string;
 }): Promise<boolean> {
   // 1) 基础校验：邮箱格式不合法不发
   const email = clean(lead.email, 254);
@@ -123,12 +142,15 @@ export async function sendLeadEmail(lead: {
     ...detailFields,
     "Submitted at": new Date().toLocaleString(),
   });
-
   // 5) 总大小上限，防异常 payload
   if (body.length > MAX_PAYLOAD_BYTES) return false;
 
   // 6) 云端数据库备份（与邮件并行，互不影响）
-  saveLeadToCloud({ name, email, type, details });
+  saveLeadToCloud({
+    name, email, type, details,
+    city: lead.city, dates: lead.dates, contact: lead.contact,
+    message: lead.message, interests: lead.interests, submittedAt: lead.submittedAt,
+  });
 
   try {
     const res = await fetch(`https://formsubmit.co/ajax/${FORMSUBMIT_ID}`, {

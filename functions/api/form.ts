@@ -101,7 +101,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     email,
     type,
     details,
-    submittedAt: new Date().toISOString(),
+    city: clean(data.city, 200),
+    dates: clean(data.dates, 100),
+    contact: clean(data.contact, 100),
+    message: clean(data.message, 2000),
+    interests: Array.isArray(data.interests)
+      ? data.interests.slice(0, 40).map((i) => clean(i, 60))
+      : [],
+    submittedAt: clean(data.submittedAt, 40) || new Date().toISOString(),
   });
   if (payload.length > 20 * 1024) {
     return json({ success: false, msg: "Payload too large" }, 400);
