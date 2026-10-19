@@ -232,8 +232,14 @@ export function BusinessWizard() {
   }, [steps.length, index]);
 
   // 每步内容高度不同：换步时丝滑滚回向导顶部，避免新步骤跑出可视区
+  // （首次挂载不滚动——页面加载/路由切换应停留在页首）
   const topRef = useRef<HTMLDivElement>(null);
+  const mounted = useRef(false);
   useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [index, sent]);
 

@@ -11,12 +11,21 @@ export function Manifesto() {
   return (
     <section id="intro" className="relative bg-neutral-950 py-24 text-white sm:py-28">
       <div className="mx-auto max-w-4xl px-6 text-center">
+        <motion.img
+          src="media/logo-full.png"
+          alt="Longview China Travel"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-20%" }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="mx-auto h-28 w-auto sm:h-32"
+        />
         <motion.h2
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-20%" }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="text-3xl font-semibold leading-tight tracking-tight sm:text-5xl"
+          transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-10 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl"
         >
           {t(manifesto.heading)}
         </motion.h2>
@@ -24,7 +33,7 @@ export function Manifesto() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-15%" }}
-          transition={{ duration: 0.8, delay: 0.1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
           className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-neutral-400"
         >
           {t(manifesto.paragraphs[0])}

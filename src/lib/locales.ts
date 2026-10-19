@@ -638,4 +638,15 @@ export const translations: Record<string, Triple> = {
   "Hot springs / beaches": { zh: "温泉 / 海滩", it: "Terme / spiagge", es: "Aguas termales / playas" },
   "Modern tech": { zh: "现代科技", it: "Tecnologia moderna", es: "Tecnología moderna" },
   "Chinese culture": { zh: "中国文化", it: "Cultura cinese", es: "Cultura china" },
+
+  /* ---------- 页脚：快捷入口 + 法律链接 ---------- */
+  "Contact us": { zh: "联系我们", it: "Contattaci", es: "Contáctanos" },
+  "Explore": { zh: "快速入口", it: "Esplora", es: "Explorar" },
+  "Legal & Info": { zh: "法律与信息", it: "Legale e info", es: "Legal e información" },
+  "Privacy Policy": { zh: "隐私政策", it: "Informativa sulla privacy", es: "Política de privacidad" },
+  "Terms of Service": { zh: "服务条款", it: "Termini di servizio", es: "Términos de servicio" },
+  "Cookie Policy": { zh: "Cookie 政策", it: "Informativa sui cookie", es: "Política de cookies" },
+  "Refund Policy": { zh: "退款政策", it: "Politica di rimborso", es: "Política de reembolso" },
+  "About Us": { zh: "关于我们", it: "Chi siamo", es: "Sobre nosotros" },
+  "FAQ": { zh: "常见问题", it: "Domande frequenti", es: "Preguntas frecuentes" },
 };

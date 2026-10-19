@@ -4,6 +4,7 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
+  CloudDownload,
   Download,
   Lock,
   Plus,
@@ -61,6 +62,30 @@ function getLeads(): Lead[] {
   }
 }
 
+/* ---------- 云端同步（Cloudflare D1） ---------- */
+
+const TOKEN_KEY = "longview-admin-token"; // 后台读取密码（与 Pages 环境变量 ADMIN_TOKEN 一致）
+const SINCE_KEY = "longview-cloud-since"; // 上次同步到的位置，增量拉取
+
+function getCloudToken(): string {
+  return localStorage.getItem(TOKEN_KEY) ?? "";
+}
+function getCloudSince(): number {
+  return Number(localStorage.getItem(SINCE_KEY) ?? 0) || 0;
+}
+
+/** 把云端拉到的询盘合并进本地（按 submittedAt + email 去重） */
+function mergeLeads(remote: Lead[]): number {
+  if (!remote.length) return 0;
+  const local = getLeads();
+  const seen = new Set(local.map((l) => `${l.submittedAt}|${l.email}`));
+  const fresh = remote.filter((l) => !seen.has(`${l.submittedAt}|${l.email}`));
+  if (fresh.length) {
+    localStorage.setItem("longview-leads", JSON.stringify([...local, ...fresh]));
+  }
+  return fresh.length;
+}
+
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -75,6 +100,9 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState(false);
   const [tick, setTick] = useState(0); // 数据变化后强制刷新
+  const [cloudToken, setCloudToken] = useState(getCloudToken());
+  const [cloudMsg, setCloudMsg] = useState("");
+  const [cloudSyncing, setCloudSyncing] = useState(false);
 
   const events = useMemo(() => getEvents(), [tick]);
   const leads = useMemo(() => getLeads(), [tick]);
@@ -108,6 +136,38 @@ export default function AdminPage() {
       setAuthed(true);
     } else {
       setLoginError(true);
+    }
+  };
+
+  /** 从 Cloudflare D1 云端数据库拉取询盘（增量：只拉上次同步之后的新数据） */
+  const syncFromCloud = async () => {
+    const token = cloudToken.trim();
+    if (!token) {
+      setCloudMsg("请先输入云端读取密码（见部署指南第 4 步设置的环境变量 ADMIN_TOKEN）");
+      return;
+    }
+    setCloudSyncing(true);
+    setCloudMsg("同步中…");
+    try {
+      const res = await fetch(`/api/leads?since=${getCloudSince()}`, {
+        headers: { "X-Admin-Token": token },
+      });
+      const data = await res.json().catch(() => null);
+      if (res.status === 401) {
+        setCloudMsg("密码不对（要与 Cloudflare 后台设置的 ADMIN_TOKEN 一致）");
+      } else if (!res.ok || !data?.success) {
+        setCloudMsg("同步失败：云端接口不可用（确认已按部署指南完成 Pages 绑定并重新部署）");
+      } else {
+        localStorage.setItem(TOKEN_KEY, token);
+        localStorage.setItem(SINCE_KEY, String(data.serverTime ?? Date.now()));
+        const added = mergeLeads(data.leads ?? []);
+        setCloudMsg(added > 0 ? `同步成功，新增 ${added} 条询盘` : "同步成功，没有新询盘");
+        setTick((t) => t + 1);
+      }
+    } catch {
+      setCloudMsg("网络错误，稍后重试");
+    } finally {
+      setCloudSyncing(false);
     }
   };
 
@@ -274,6 +334,38 @@ export default function AdminPage() {
               {topInterests.length === 0 && <li className="text-neutral-600">No data yet</li>}
             </ul>
           </div>
+        </div>
+
+        {/* 云端同步：从 Cloudflare D1 拉取所有访客的提交 */}
+        <div className="mt-14 rounded-2xl border border-white/10 bg-white/5 p-6">
+          <div className="flex flex-wrap items-center gap-4">
+            <CloudDownload size={18} className="text-neutral-400" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">云端询盘同步（Cloudflare D1）</p>
+              <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+                访客在任何设备上提交的表单都会自动存入云端数据库（电脑关机也照收）。
+                点「从云端同步」把新询盘拉到这里，可随时导出 CSV 或打印 PDF。
+              </p>
+            </div>
+            <input
+              type="password"
+              value={cloudToken}
+              onChange={(e) => setCloudToken(e.target.value)}
+              placeholder="云端读取密码 ADMIN_TOKEN"
+              className="w-56 rounded-xl border border-white/15 bg-black/40 px-4 py-2.5 text-sm text-white placeholder:text-neutral-600 outline-none focus:border-white/50"
+            />
+            <button
+              onClick={syncFromCloud}
+              disabled={cloudSyncing}
+              className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition enabled:hover:bg-white/85 disabled:opacity-40"
+            >
+              <CloudDownload size={14} />
+              {cloudSyncing ? "同步中…" : "从云端同步"}
+            </button>
+          </div>
+          {cloudMsg && (
+            <p className="mt-3 text-xs text-neutral-400">{cloudMsg}</p>
+          )}
         </div>
 
         {/* 询盘列表 */}

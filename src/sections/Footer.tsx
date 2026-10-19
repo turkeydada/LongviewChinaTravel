@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Facebook, Instagram, Music2, Mail, Phone } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { footer, site } from "@/config/site";
 import { useI18n } from "@/lib/i18n";
 
@@ -12,9 +13,43 @@ const socialIcons: Record<string, typeof Facebook> = {
 
 const contactIcons: Record<string, typeof Mail> = { Mail, Phone };
 
-/** 页脚：大字标语 + 联系方式 + 社交媒体图标，与整页暗色风格融合（导航 #contact 锚点） */
+/** 页脚：大字标语 + 联系方式 + 快捷入口 + 法律链接 + 社交媒体图标（导航 #contact 锚点） */
 export function Footer() {
   const { t } = useI18n();
+  const location = useLocation();
+
+  // 主页锚点 / 子界面直达；在非主页时先回主页再平滑滚动
+  const goHomeThen = (hash: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (location.pathname !== "/") {
+      window.location.hash = `/`;
+      setTimeout(() => {
+        document.querySelector(hash)?.scrollIntoView({ behavior: "smooth" });
+      }, 350);
+    } else {
+      document.querySelector(hash)?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const quickLinks = [
+    { label: t("Overview"), href: "/#intro", onClick: goHomeThen("#intro") },
+    { label: t("Contact us"), href: "/#contact", onClick: goHomeThen("#contact") },
+    { label: t("Leisure travel"), href: "/#/leisure" },
+    { label: t("Business travel"), href: "/#/business" },
+    { label: t("Plan a trip"), href: "/#purpose", onClick: goHomeThen("#purpose") },
+  ];
+
+  const legalLinks = [
+    { label: t("Privacy Policy"), to: "/privacy" },
+    { label: t("Terms of Service"), to: "/terms" },
+    { label: t("Cookie Policy"), to: "/cookies" },
+    { label: t("Refund Policy"), to: "/refund" },
+    { label: t("About Us"), to: "/about" },
+    { label: t("FAQ"), to: "/faq" },
+  ];
+
+  const linkCls = "text-sm text-neutral-500 transition hover:text-white";
+
   return (
     <footer id="contact" className="relative overflow-hidden bg-black pt-32 text-white">
       <div className="mx-auto max-w-6xl px-6">
@@ -49,8 +84,39 @@ export function Footer() {
           })}
         </div>
 
+        {/* 快捷入口 + 法律链接 */}
+        <div className="mt-16 grid gap-10 border-t border-white/10 pt-12 sm:grid-cols-2">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">{t("Explore")}</p>
+            <div className="mt-5 flex flex-col gap-3">
+              {quickLinks.map((l) =>
+                l.onClick ? (
+                  <a key={l.label} href={l.href} onClick={l.onClick} className={linkCls}>
+                    {l.label}
+                  </a>
+                ) : (
+                  <a key={l.label} href={l.href} className={linkCls}>
+                    {l.label}
+                  </a>
+                ),
+              )}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">{t("Legal & Info")}</p>
+            <div className="mt-5 flex flex-col gap-3">
+              {legalLinks.map((l) => (
+                <Link key={l.to} to={l.to} className={linkCls}>
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* 社交媒体 */}
-        <div className="mt-20 flex items-center justify-between border-t border-white/10 py-10">
+        <div className="mt-16 flex flex-col items-center gap-6 border-t border-white/10 py-10 sm:flex-row sm:justify-between">
+          <img src="media/logo-full.png" alt="Longview China Travel" className="h-14 w-auto" />
           <p className="text-sm text-neutral-600">{site.name}</p>
           <div className="flex items-center gap-3">
             {site.socials.map((s) => {

@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Cloudflare 本地开发（含测试密码，不上传）
+.dev.vars
+.wrangler/
