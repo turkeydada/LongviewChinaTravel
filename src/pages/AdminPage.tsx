@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowDown,
@@ -22,6 +22,86 @@ import {
   type ConfigOverrides,
 } from "@/config/site";
 import { clearEvents, getEvents } from "@/lib/analytics";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+/* ---------- 云端行为分析数据形状（/api/analytics 返回） ---------- */
+
+type AnalyticsData = {
+  rangeDays: number;
+  totals: {
+    views: number;
+    visitors: number;
+    sessions: number;
+    bouncePct: number;
+    newPct: number;
+    leads: number;
+    abandons: number;
+  };
+  trend: { d: string; c: number }[];
+  devices: { k: string; c: number; u: number }[];
+  channels: { k: string; c: number; u: number }[];
+  countries: { k: string; c: number; u: number }[];
+  pages: { page: string; views: number; users: number; avgDwell: number; maxDwell: number; avgScroll: number }[];
+  clicks: { k: string; c: number; u: number }[];
+  interests: { k: string; c: number; u: number }[];
+};
+
+const DEVICE_LABELS: Record<string, string> = { mobile: "手机", desktop: "电脑", tablet: "平板" };
+const CHANNEL_LABELS: Record<string, string> = {
+  direct: "直接访问",
+  search: "搜索引擎",
+  social: "社交媒体",
+  referral: "外部链接",
+};
+
+const CHART_TIP = {
+  contentStyle: {
+    background: "#0a0a0a",
+    border: "1px solid rgba(255,255,255,0.15)",
+    borderRadius: 12,
+    fontSize: 12,
+  },
+  labelStyle: { color: "#a3a3a3" },
+  itemStyle: { color: "#fff" },
+};
+
+/** 横向占比条（设备 / 渠道 / 地区分布共用） */
+function ShareBars({ title, items, labels }: {
+  title: string;
+  items: { k: string; c: number }[];
+  labels?: Record<string, string>;
+}) {
+  const max = Math.max(1, ...items.map((i) => i.c));
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+      <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">{title}</p>
+      <div className="mt-4 space-y-3">
+        {items.map((i) => (
+          <div key={i.k || "?"}>
+            <div className="flex justify-between text-xs">
+              <span className="text-neutral-300">{(labels?.[i.k] ?? i.k) || "未知"}</span>
+              <span className="text-neutral-500">{i.c}</span>
+            </div>
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
+              <div className="h-full rounded-full bg-white/80" style={{ width: `${(i.c / max) * 100}%` }} />
+            </div>
+          </div>
+        ))}
+        {items.length === 0 && <p className="text-xs text-neutral-600">暂无数据</p>}
+      </div>
+    </div>
+  );
+}
 
 /**
  * 后台控制台 v1（浏览器本地版）：
@@ -96,9 +176,9 @@ function mergeLeads(remote: Lead[]): number {
   return fresh.length;
 }
 
-function StatCard({ label, value }: { label: string; value: string | number }) {
+function StatCard({ label, value, title }: { label: string; value: string | number; title?: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-6" title={title}>
       <p className="text-3xl font-semibold">{value}</p>
       <p className="mt-2 text-xs uppercase tracking-[0.2em] text-neutral-500">{label}</p>
     </div>
@@ -113,6 +193,35 @@ export default function AdminPage() {
   const [cloudToken, setCloudToken] = useState(getCloudToken());
   const [cloudMsg, setCloudMsg] = useState("");
   const [cloudSyncing, setCloudSyncing] = useState(false);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [analyticsMsg, setAnalyticsMsg] = useState("");
+
+  // 已保存云端密码 → 登录后自动加载行为分析
+  useEffect(() => {
+    if (authed && getCloudToken()) void loadAnalytics(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authed]);
+
+  /** 从 Cloudflare D1 拉取访客行为聚合数据（四大板块） */
+  const loadAnalytics = async (silent = false) => {
+    const token = getCloudToken();
+    if (!token) return;
+    if (!silent) setAnalyticsMsg("加载中…");
+    try {
+      const res = await fetch("/api/analytics?days=30", {
+        headers: { "X-Admin-Token": token },
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.success) {
+        setAnalytics(data);
+        setAnalyticsMsg("");
+      } else if (!silent) {
+        setAnalyticsMsg("数据面板加载失败（确认已建 events 数据表并重新部署，见部署指南附录）");
+      }
+    } catch {
+      if (!silent) setAnalyticsMsg("网络错误，稍后重试");
+    }
+  };
 
   const events = useMemo(() => getEvents(), [tick]);
   const leads = useMemo(() => getLeads(), [tick]);
@@ -377,6 +486,139 @@ export default function AdminPage() {
             <p className="mt-3 text-xs text-neutral-400">{cloudMsg}</p>
           )}
         </div>
+
+        {/* 数据分析面板（云端 · 近 30 天） */}
+        <div className="mt-14 flex items-center justify-between">
+          <h2 className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
+            数据分析（云端 · 近 {analytics?.rangeDays ?? 30} 天）
+          </h2>
+          <button
+            onClick={() => void loadAnalytics()}
+            className="flex items-center gap-2 text-xs text-neutral-400 hover:text-white"
+          >
+            <CloudDownload size={12} /> 刷新数据
+          </button>
+        </div>
+        {analyticsMsg && <p className="mt-3 text-xs text-neutral-500">{analyticsMsg}</p>}
+        {!analytics && !analyticsMsg && (
+          <p className="mt-3 text-xs text-neutral-600">
+            在上方「云端询盘同步」面板输入 ADMIN_TOKEN 密码后自动加载。
+          </p>
+        )}
+
+        {analytics && (
+          <div className="mt-6 space-y-8">
+            {/* ① 访客概览 */}
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
+              <StatCard label="总访问量" value={analytics.totals.views} />
+              <StatCard label="独立访客" value={analytics.totals.visitors} />
+              <StatCard label="会话数" value={analytics.totals.sessions} />
+              <StatCard label="跳出率" value={`${analytics.totals.bouncePct}%`} />
+              <StatCard label="新访客占比" value={`${analytics.totals.newPct}%`} />
+              <StatCard label="表单提交" value={analytics.totals.leads} />
+              <StatCard
+                label={`表单放弃率（${analytics.totals.abandons} 次）`}
+                title={`${analytics.totals.abandons} 位访客打开了问卷但没有提交`}
+                value={`${
+                  analytics.totals.leads + analytics.totals.abandons > 0
+                    ? Math.round((analytics.totals.abandons / (analytics.totals.leads + analytics.totals.abandons)) * 100)
+                    : 0
+                }%`}
+              />
+            </div>
+
+            {/* 每日趋势折线 */}
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">每日访问趋势</p>
+              <div className="mt-4 h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={analytics.trend.map((t) => ({ d: t.d.slice(5), views: t.c }))}>
+                    <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+                    <XAxis dataKey="d" tick={{ fill: "#737373", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "#737373", fontSize: 11 }} axisLine={false} tickLine={false} width={32} allowDecimals={false} />
+                    <Tooltip {...CHART_TIP} />
+                    <Line type="monotone" dataKey="views" stroke="#fff" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* ② 页面行为 + ③ 交互事件 */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+                <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">页面停留分析</p>
+                <table className="mt-4 w-full text-left text-sm">
+                  <thead>
+                    <tr className="text-xs uppercase tracking-wider text-neutral-600">
+                      <th className="py-2 pr-2">页面</th>
+                      <th className="py-2 pr-2">访问</th>
+                      <th className="py-2 pr-2">平均停留</th>
+                      <th className="py-2 pr-2">最长</th>
+                      <th className="py-2">滚动</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {analytics.pages.map((p) => (
+                      <tr key={p.page} className="border-t border-white/5 text-neutral-300">
+                        <td className="py-2.5 pr-2 font-mono text-xs">{p.page.replace(/^#\//, "/")}</td>
+                        <td className="py-2.5 pr-2">{p.views}</td>
+                        <td className="py-2.5 pr-2">{p.avgDwell}s</td>
+                        <td className="py-2.5 pr-2">{p.maxDwell}s</td>
+                        <td className="py-2.5">{p.avgScroll}%</td>
+                      </tr>
+                    ))}
+                    {analytics.pages.length === 0 && (
+                      <tr><td colSpan={5} className="py-6 text-center text-xs text-neutral-600">暂无数据</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+                <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">按钮 / 链接点击排行</p>
+                <div className="mt-4 h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={analytics.clicks.slice(0, 8).map((c) => ({
+                        name: c.k.replace(/^(a|button):/, "").slice(0, 18),
+                        clicks: c.c,
+                      }))}
+                      layout="vertical"
+                      margin={{ left: 8, right: 16 }}
+                    >
+                      <CartesianGrid stroke="rgba(255,255,255,0.06)" horizontal={false} />
+                      <XAxis type="number" tick={{ fill: "#737373", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                      <YAxis type="category" dataKey="name" tick={{ fill: "#a3a3a3", fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
+                      <Tooltip {...CHART_TIP} />
+                      <Bar dataKey="clicks" fill="#fff" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* 服务兴趣 + 流量来源 */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+                <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">服务选项兴趣（行程设计 / 包车等）</p>
+                <ul className="mt-4 space-y-2 text-sm">
+                  {analytics.interests.map((i) => (
+                    <li key={i.k} className="flex items-center justify-between">
+                      <span className="text-neutral-300">{i.k}</span>
+                      <span className="text-neutral-500">{i.c} 次 · {i.u} 人</span>
+                    </li>
+                  ))}
+                  {analytics.interests.length === 0 && <li className="text-xs text-neutral-600">暂无数据</li>}
+                </ul>
+              </div>
+              <div className="grid gap-6 sm:grid-cols-3 lg:col-span-1">
+                <ShareBars title="设备类型" items={analytics.devices} labels={DEVICE_LABELS} />
+                <ShareBars title="流量渠道" items={analytics.channels} labels={CHANNEL_LABELS} />
+                <ShareBars title="国家 / 地区 Top10" items={analytics.countries} />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 询盘列表 */}
         <div className="mt-14 flex items-center justify-between">

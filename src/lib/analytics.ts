@@ -1,7 +1,9 @@
 /**
- * 轻量访问统计：事件写入 localStorage。
- * 后续接入真实后端时，把 track() 内部改为 POST 到 API 即可，调用处不用改。
+ * 轻量访问统计：事件写入 localStorage（本机版后台用），
+ * 同时镜像到云端采集队列（telemetry.ts → D1，跨设备可查）。
  */
+
+import { enqueueCloud } from "@/lib/telemetry";
 
 export type TrackedEvent = {
   type: string; // page_view | journey_choose | interest_click | lead_submit
@@ -25,11 +27,12 @@ export function getSessionId(): string {
 }
 
 export function track(type: string, meta?: string) {
+  const page = location.hash || "#/";
   try {
     const events = getEvents();
     events.push({
       type,
-      page: location.hash || "#/",
+      page,
       meta,
       session: getSessionId(),
       ts: Date.now(),
@@ -38,6 +41,10 @@ export function track(type: string, meta?: string) {
   } catch {
     /* 存储满或禁用时静默失败，不影响页面 */
   }
+  // 云端镜像（journey_choose / interest_click / lead_submit）
+  const cloudType =
+    type === "interest_click" ? "interest" : type === "lead_submit" ? "lead" : type === "journey_choose" ? "journey" : type;
+  enqueueCloud({ type: cloudType, page, meta });
 }
 
 export function getEvents(): TrackedEvent[] {

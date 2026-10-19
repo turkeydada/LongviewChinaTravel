@@ -86,6 +86,7 @@ export function PrivacyPage() {
             "Trip-planning forms: your name, email address, WhatsApp number, travel dates, destinations, group size, hotel and service preferences, special requirements, and any companion details you choose to provide.",
             "Contact details: when you email or message us, we keep the correspondence so we can respond and plan your trip.",
             "Technical data: standard server logs (IP address, browser type, pages visited) used for security and to keep the site working smoothly. We do not use these logs to identify individual visitors.",
+            "Anonymous usage analytics: to understand how the site is used and improve it, we collect aggregated, non-identifying statistics — pages viewed, approximate time spent on a page, which buttons or links are clicked, how far down a page visitors scroll, the type of device used (phone, tablet, or computer), the general region the visit comes from (country level only), and whether a trip-planning form was started or submitted. These statistics are stored on our own server (Cloudflare) and are never sold or shared with advertisers.",
           ],
         },
         {
@@ -114,7 +115,7 @@ export function PrivacyPage() {
         {
           heading: "Cookies",
           body: [
-            "Our site stores only essential technical data in your browser, such as your language preference and form progress, so the site remembers your choices between visits. We do not use third-party advertising or tracking cookies. See our Cookie Policy for details.",
+            "Our site stores only essential technical data in your browser, such as your language preference, form progress, and an anonymous random identifier used for our own usage statistics, so the site remembers your choices between visits. We do not use third-party advertising or tracking cookies. See our Cookie Policy for details.",
           ],
         },
         {
@@ -232,6 +233,7 @@ export function CookiesPage() {
             "Language preference: we remember whether you chose English, Chinese, Italian, or Spanish so the site opens in your language next time.",
             "Trip form progress: while you fill in our trip planner, your choices are kept in your browser so you can go back, edit, and continue without losing anything. This data stays on your device and is only sent to us when you press submit.",
             "Admin preferences: if you use our content console, a flag is stored to load your saved settings.",
+            "Anonymous usage statistics: a random identifier stored in your browser helps us count visits and understand how the site is used (see our Privacy Policy). It contains no personal information.",
           ],
         },
         {
