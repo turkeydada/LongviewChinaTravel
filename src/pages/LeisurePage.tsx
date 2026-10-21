@@ -42,6 +42,9 @@ const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 /** 入境休闲旅游子页面：亮点 → 分步引导向导 → 汇总成表发送 */
 export default function LeisurePage() {
   const { t } = useI18n();
+
+  const scrollToPlan = () =>
+    document.getElementById("plan")?.scrollIntoView({ behavior: "smooth", block: "start" });
   useEffect(() => track("page_view", "leisure"), []);
 
   return (
@@ -80,8 +83,9 @@ export default function LeisurePage() {
           >
             {t("Your holiday, designed around you.")}
           </motion.h1>
-          <motion.a
-            href="#plan"
+          <motion.button
+            type="button"
+            onClick={scrollToPlan}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 1 }}
@@ -89,7 +93,7 @@ export default function LeisurePage() {
           >
             {t("Start planning")}
             <ArrowDown size={16} />
-          </motion.a>
+          </motion.button>
         </div>
       </section>
 
