@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { translations, type Lang } from "./locales";
+import { enqueueCloud } from "./telemetry";
 
 const STORAGE_KEY = "longview-lang";
 
@@ -40,6 +41,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
+    // 埋点：记录访客手动切换语言（初始语言不记）
+    enqueueCloud({ type: "lang_switch", page: location.hash || "#/", meta: l });
   };
 
   const t = (s: string): string => {

@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
+  ChevronDown,
+  ChevronUp,
   CloudDownload,
   Download,
   Lock,
@@ -51,9 +53,41 @@ type AnalyticsData = {
   devices: { k: string; c: number; u: number }[];
   channels: { k: string; c: number; u: number }[];
   countries: { k: string; c: number; u: number }[];
+  cities: { k: string; c: number; u: number }[];
   pages: { page: string; views: number; users: number; avgDwell: number; maxDwell: number; avgScroll: number }[];
   clicks: { k: string; c: number; u: number }[];
   interests: { k: string; c: number; u: number }[];
+  funnel: { landed: number; viewed: number; fielded: number; submitted: number };
+  utmSources: { k: string; u: number; conv: number }[];
+  utmMedia: { k: string; u: number; conv: number }[];
+};
+
+/** 会话明细（/api/sessions 单行） */
+type SessionRow = {
+  sid: string; started_at: number; last_ts: number; dwell_ms: number; pages: number; events: number;
+  country: string; region: string; city: string; device: string; os: string; browser: string;
+  channel: string; utm_source: string; utm_medium: string; lang: string;
+  submitted: number; abandoned: number;
+};
+
+/** 单会话旅程事件（/api/session 单行） */
+type SessionEvent = {
+  ts: number; type: string; page: string; meta: string; value: number;
+  country: string; city: string; device: string; os: string; browser: string; lang: string;
+};
+
+const EVENT_LABELS: Record<string, string> = {
+  page_view: "打开页面",
+  dwell: "停留",
+  scroll: "滚动深度",
+  click: "点击",
+  interest: "服务兴趣",
+  journey: "出行选择",
+  lang_switch: "切换语言",
+  form_view: "打开问卷",
+  form_field: "填写字段",
+  form_abandon: "放弃问卷",
+  form_submit: "提交问卷",
 };
 
 const DEVICE_LABELS: Record<string, string> = { mobile: "手机", desktop: "电脑", tablet: "平板" };
@@ -62,6 +96,7 @@ const CHANNEL_LABELS: Record<string, string> = {
   search: "搜索引擎",
   social: "社交媒体",
   referral: "外部链接",
+  whatsapp: "WhatsApp",
 };
 
 const CHART_TIP = {
@@ -195,14 +230,22 @@ export default function AdminPage() {
   const [cloudSyncing, setCloudSyncing] = useState(false);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [analyticsMsg, setAnalyticsMsg] = useState("");
+  const [sessions, setSessions] = useState<SessionRow[] | null>(null);
+  const [sessionsMsg, setSessionsMsg] = useState("");
+  const [expandedSid, setExpandedSid] = useState<string | null>(null);
+  const [sessionDetail, setSessionDetail] = useState<Record<string, SessionEvent[]>>({});
+  const [exporting, setExporting] = useState("");
 
-  // 已保存云端密码 → 登录后自动加载行为分析
+  // 已保存云端密码 → 登录后自动加载行为分析 + 会话明细
   useEffect(() => {
-    if (authed && getCloudToken()) void loadAnalytics(true);
+    if (authed && getCloudToken()) {
+      void loadAnalytics(true);
+      void loadSessions(true);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authed]);
 
-  /** 从 Cloudflare D1 拉取访客行为聚合数据（四大板块） */
+  /** 从 Cloudflare D1 拉取访客行为聚合数据（六大板块） */
   const loadAnalytics = async (silent = false) => {
     const token = getCloudToken();
     if (!token) return;
@@ -216,10 +259,82 @@ export default function AdminPage() {
         setAnalytics(data);
         setAnalyticsMsg("");
       } else if (!silent) {
-        setAnalyticsMsg("数据面板加载失败（确认已建 events 数据表并重新部署，见部署指南附录）");
+        setAnalyticsMsg("数据面板加载失败（确认已建 visit_log 数据表并重新部署，见部署指南附录）");
       }
     } catch {
       if (!silent) setAnalyticsMsg("网络错误，稍后重试");
+    }
+  };
+
+  /** 访客会话明细列表（最近 50 条） */
+  const loadSessions = async (silent = false) => {
+    const token = getCloudToken();
+    if (!token) return;
+    if (!silent) setSessionsMsg("加载中…");
+    try {
+      const res = await fetch("/api/sessions?limit=50&days=30", {
+        headers: { "X-Admin-Token": token },
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.success) {
+        setSessions(Array.isArray(data.sessions) ? data.sessions : []);
+        setSessionsMsg("");
+      } else if (!silent) {
+        setSessionsMsg("会话列表加载失败（确认已建 visit_log 数据表）");
+      }
+    } catch {
+      if (!silent) setSessionsMsg("网络错误，稍后重试");
+    }
+  };
+
+  /** 展开单会话完整旅程 */
+  const toggleSession = async (sid: string) => {
+    if (expandedSid === sid) {
+      setExpandedSid(null);
+      return;
+    }
+    setExpandedSid(sid);
+    if (sessionDetail[sid]) return;
+    const token = getCloudToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`/api/session?sid=${encodeURIComponent(sid)}`, {
+        headers: { "X-Admin-Token": token },
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.success) {
+        setSessionDetail((m) => ({ ...m, [sid]: Array.isArray(data.events) ? data.events : [] }));
+      }
+    } catch {
+      /* 展开失败保持收起状态即可 */
+    }
+  };
+
+  /** 一键导出 CSV（访问日志 / 询盘） */
+  const exportCsvCloud = async (kind: "visits" | "leads") => {
+    const token = getCloudToken();
+    if (!token || exporting) return;
+    setExporting(kind);
+    try {
+      const res = await fetch(`/api/export?kind=${kind}`, {
+        headers: { "X-Admin-Token": token },
+      });
+      if (!res.ok) {
+        setSessionsMsg(res.status === 401 ? "导出失败：云端密码不对" : "导出失败，稍后重试");
+        return;
+      }
+      const blob = await res.blob();
+      const cd = res.headers.get("Content-Disposition") ?? "";
+      const m = /filename="([^"]+)"/.exec(cd);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = m?.[1] ?? `${kind}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch {
+      setSessionsMsg("网络错误，导出失败");
+    } finally {
+      setExporting("");
     }
   };
 
@@ -611,12 +726,219 @@ export default function AdminPage() {
                   {analytics.interests.length === 0 && <li className="text-xs text-neutral-600">暂无数据</li>}
                 </ul>
               </div>
-              <div className="grid gap-6 sm:grid-cols-3 lg:col-span-1">
-                <ShareBars title="设备类型" items={analytics.devices} labels={DEVICE_LABELS} />
-                <ShareBars title="流量渠道" items={analytics.channels} labels={CHANNEL_LABELS} />
-                <ShareBars title="国家 / 地区 Top10" items={analytics.countries} />
+              <div className="grid gap-6 sm:grid-cols-2 lg:col-span-1">
+                <ShareBars title="设备类型" items={analytics.devices ?? []} labels={DEVICE_LABELS} />
+                <ShareBars title="流量渠道" items={analytics.channels ?? []} labels={CHANNEL_LABELS} />
+                <ShareBars title="国家 / 地区 Top10" items={analytics.countries ?? []} />
+                <ShareBars title="城市 Top10" items={analytics.cities ?? []} />
               </div>
             </div>
+
+            {/* ④ 表单流失漏斗 */}
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">
+                表单流失漏斗（近 {analytics.rangeDays} 天 · 按会话）
+              </p>
+              <div className="mt-5 space-y-4">
+                {(() => {
+                  const f = analytics.funnel ?? { landed: 0, viewed: 0, fielded: 0, submitted: 0 };
+                  const steps: { label: string; v: number; hint: string }[] = [
+                    { label: "① 落地网站", v: f.landed, hint: "打开任意页面" },
+                    { label: "② 打开问卷", v: f.viewed, hint: "进入 Business / Leisure 向导" },
+                    { label: "③ 开始填写", v: f.fielded, hint: "聚焦过输入框" },
+                    { label: "④ 提交成功", v: f.submitted, hint: "完成并发送需求" },
+                  ];
+                  const base = Math.max(1, f.landed);
+                  return steps.map((s, i) => {
+                    const prev = i === 0 ? s.v : steps[i - 1].v;
+                    const stepPct = prev ? Math.round((s.v / prev) * 100) : 0;
+                    const totalPct = Math.round((s.v / base) * 100);
+                    return (
+                      <div key={s.label}>
+                        <div className="flex items-baseline justify-between text-sm">
+                          <span className="text-neutral-200">
+                            {s.label}
+                            <span className="ml-2 text-xs text-neutral-600">{s.hint}</span>
+                          </span>
+                          <span className="text-neutral-400">
+                            {s.v} 会话
+                            {i > 0 && <span className="ml-2 text-neutral-600">上一步转化 {stepPct}% · 总转化 {totalPct}%</span>}
+                          </span>
+                        </div>
+                        <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-white/10">
+                          <div className="h-full rounded-full bg-white/80 transition-all" style={{ width: `${Math.max(2, totalPct)}%` }} />
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+
+            {/* ⑤ UTM 渠道归因 */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              {[
+                { title: "UTM 来源归因 Top12", rows: analytics.utmSources ?? [] },
+                { title: "UTM 媒介归因 Top12", rows: analytics.utmMedia ?? [] },
+              ].map((sec) => (
+                <div key={sec.title} className="rounded-2xl border border-white/10 bg-white/5 p-6">
+                  <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">{sec.title}</p>
+                  <table className="mt-4 w-full text-left text-sm">
+                    <thead>
+                      <tr className="text-xs uppercase tracking-wider text-neutral-600">
+                        <th className="py-2 pr-2">来源</th>
+                        <th className="py-2 pr-2">会话数</th>
+                        <th className="py-2">提交转化</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sec.rows.map((r) => (
+                        <tr key={r.k} className="border-t border-white/5 text-neutral-300">
+                          <td className="py-2.5 pr-2 font-mono text-xs">{r.k}</td>
+                          <td className="py-2.5 pr-2">{r.u}</td>
+                          <td className="py-2.5">
+                            {r.conv}
+                            <span className="ml-2 text-xs text-neutral-600">
+                              {r.u ? Math.round((r.conv / r.u) * 100) : 0}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                      {sec.rows.length === 0 && (
+                        <tr><td colSpan={3} className="py-6 text-center text-xs text-neutral-600">暂无 UTM 数据（在推广链接上加 ?utm_source=linkedin 等参数后自动统计）</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 访客会话明细（云端 · 最近 50 条） */}
+        <div className="mt-14 flex items-center justify-between">
+          <h2 className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
+            访客会话明细（云端 · 近 30 天）
+          </h2>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => void exportCsvCloud("visits")}
+              disabled={!!exporting}
+              className="flex items-center gap-2 text-xs text-neutral-400 hover:text-white disabled:opacity-40"
+            >
+              <Download size={12} /> {exporting === "visits" ? "导出中…" : "导出访问日志 CSV"}
+            </button>
+            <button
+              onClick={() => void exportCsvCloud("leads")}
+              disabled={!!exporting}
+              className="flex items-center gap-2 text-xs text-neutral-400 hover:text-white disabled:opacity-40"
+            >
+              <Download size={12} /> {exporting === "leads" ? "导出中…" : "导出全部询盘 CSV"}
+            </button>
+            <button
+              onClick={() => void loadSessions()}
+              className="flex items-center gap-2 text-xs text-neutral-400 hover:text-white"
+            >
+              <CloudDownload size={12} /> 刷新
+            </button>
+          </div>
+        </div>
+        {sessionsMsg && <p className="mt-3 text-xs text-neutral-500">{sessionsMsg}</p>}
+        {!sessions && !sessionsMsg && (
+          <p className="mt-3 text-xs text-neutral-600">在上方「云端询盘同步」面板输入 ADMIN_TOKEN 密码后自动加载。</p>
+        )}
+        {sessions && (
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-white/10">
+            <table className="w-full min-w-[960px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-neutral-500">
+                  <th className="px-4 py-3">访问时间</th>
+                  <th className="px-4 py-3">地区</th>
+                  <th className="px-4 py-3">设备 / 浏览器</th>
+                  <th className="px-4 py-3">页面数</th>
+                  <th className="px-4 py-3">停留时长</th>
+                  <th className="px-4 py-3">渠道 / UTM</th>
+                  <th className="px-4 py-3">表单结果</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {sessions.map((s) => (
+                  <Fragment key={s.sid}>
+                    <tr className="border-b border-white/5 text-neutral-300">
+                      <td className="px-4 py-3 text-neutral-400">
+                        {new Date(s.started_at).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        {[s.city, s.region, s.country].filter(Boolean).join(", ") || "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        {DEVICE_LABELS[s.device] ?? s.device}
+                        <span className="ml-1 text-xs text-neutral-500">{[s.os, s.browser].filter(Boolean).join(" · ")}</span>
+                      </td>
+                      <td className="px-4 py-3">{s.pages}</td>
+                      <td className="px-4 py-3">{Math.round((s.dwell_ms ?? 0) / 1000)}s</td>
+                      <td className="px-4 py-3 text-xs text-neutral-500">
+                        {CHANNEL_LABELS[s.channel] ?? s.channel}
+                        {s.utm_source && <span className="ml-1 rounded bg-white/10 px-1.5 py-0.5 font-mono">{s.utm_source}</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        {s.submitted > 0 ? (
+                          <span className="rounded-full bg-emerald-400/15 px-2.5 py-1 text-xs text-emerald-300">已提交</span>
+                        ) : s.abandoned > 0 ? (
+                          <span className="rounded-full bg-amber-400/15 px-2.5 py-1 text-xs text-amber-300">填了没提交</span>
+                        ) : (
+                          <span className="text-xs text-neutral-600">仅浏览</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => void toggleSession(s.sid)}
+                          className="flex items-center gap-1 rounded-full border border-white/15 px-3 py-1.5 text-xs text-neutral-300 transition hover:bg-white/10"
+                        >
+                          {expandedSid === s.sid ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                          旅程
+                        </button>
+                      </td>
+                    </tr>
+                    {expandedSid === s.sid && (
+                      <tr className="border-b border-white/5 bg-black/40">
+                        <td colSpan={8} className="px-6 py-4">
+                          {!sessionDetail[s.sid] ? (
+                            <p className="text-xs text-neutral-500">加载中…</p>
+                          ) : (
+                            <div className="space-y-1.5">
+                              {sessionDetail[s.sid].map((ev, i) => (
+                                <div key={i} className="flex flex-wrap items-baseline gap-x-3 text-xs">
+                                  <span className="font-mono text-neutral-600">
+                                    {new Date(ev.ts).toLocaleTimeString()}
+                                  </span>
+                                  <span className="w-20 shrink-0 text-neutral-400">{EVENT_LABELS[ev.type] ?? ev.type}</span>
+                                  <span className="font-mono text-neutral-500">{ev.page.replace(/^#\//, "/")}</span>
+                                  {ev.meta && <span className="text-neutral-300">{ev.meta}</span>}
+                                  {ev.type === "dwell" && <span className="text-neutral-500">{Math.round(ev.value / 1000)}s</span>}
+                                  {ev.type === "scroll" && <span className="text-neutral-500">{ev.value}%</span>}
+                                </div>
+                              ))}
+                              {sessionDetail[s.sid].length === 0 && (
+                                <p className="text-xs text-neutral-600">该会话没有更多事件。</p>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                ))}
+                {sessions.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-10 text-center text-neutral-600">
+                      近 30 天暂无访客会话（建表并重新部署后开始收集）。
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         )}
 

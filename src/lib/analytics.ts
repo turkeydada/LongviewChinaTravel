@@ -43,7 +43,7 @@ export function track(type: string, meta?: string) {
   }
   // 云端镜像（journey_choose / interest_click / lead_submit）
   const cloudType =
-    type === "interest_click" ? "interest" : type === "lead_submit" ? "lead" : type === "journey_choose" ? "journey" : type;
+    type === "interest_click" ? "interest" : type === "lead_submit" ? "form_submit" : type === "journey_choose" ? "journey" : type;
   enqueueCloud({ type: cloudType, page, meta });
 }
 

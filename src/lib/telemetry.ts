@@ -1,14 +1,18 @@
 /**
- * 云端访客行为采集（Cloudflare D1）
+ * 云端访客行为采集（Cloudflare D1 · visit_log）
  * ---------------------------------------------------------------
  * 在 track()（本地统计）基础上，把匿名行为事件批量上报到 /api/events：
- * - 页面访问 / 停留时长 / 滚动深度（页面切换或关闭时结算上一页）
- * - 按钮与链接点击（带文字，最多 40 字符）
- * - 问卷放弃（检测到未提交的草稿）
+ * - 页面访问 / 有效停留时长（只统计页面可见时间，切 Tab 自动暂停）
+ * - 滚动深度 / 按钮点击 / 语言手动切换
+ * - 表单漏斗：form_view（打开问卷）→ form_field（聚焦输入框）→
+ *   form_submit（提交成功）/ form_abandon（未提交离开）
  * - track() 手动事件（journey_choose / interest_click / lead_submit）自动镜像
+ * - UTM 归因：落地时抓取 utm_* 参数并在整个会话中携带
+ * - 会话规则：同一 sessionId 30 分钟无操作自动过期，生成新会话
  *
- * 隐私边界：只采集匿名行为数据（不采集表单输入内容、不跨站追踪、
- * 不用广告 cookie）；visitor 标识只存本机 localStorage。
+ * 隐私边界：只采集匿名行为数据（不采集表单输入内容、不存明文 IP、
+ * 不跨站追踪、不用广告 cookie）；visitor 标识只存本机 localStorage，
+ * IP 由服务端加盐哈希后存储。
  * 采集失败静默跳过，绝不影响页面功能。
  */
 
@@ -20,25 +24,36 @@ type CloudEvent = {
 };
 
 const SESSION_KEY = "longview-session";
+const SESSION_TS_KEY = "longview-session-ts";
 const VISITOR_KEY = "longview-visitor";
+const UTM_KEY = "longview-utm";
 const FLUSH_INTERVAL = 8000;
 const MAX_BATCH = 40;
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 分钟无操作 → 新会话
 
 let queue: CloudEvent[] = [];
 let currentPage = "";
-let pageEnterAt = Date.now();
+let visibleMs = 0; // 当前页面累计“可见”时长
+let segStart = Date.now(); // 当前可见段起始
 let maxScroll = 0;
 let settled = false;
 let flushing = false;
 
 /* ---------- 标识 ---------- */
 
+function newSessionId(): string {
+  const id = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  sessionStorage.setItem(SESSION_KEY, id);
+  sessionStorage.setItem(SESSION_TS_KEY, String(Date.now()));
+  return id;
+}
+
+/** 会话：30 分钟无操作自动过期 */
 function sessionId(): string {
   let id = sessionStorage.getItem(SESSION_KEY);
-  if (!id) {
-    id = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-    sessionStorage.setItem(SESSION_KEY, id);
-  }
+  const ts = Number(sessionStorage.getItem(SESSION_TS_KEY) ?? 0);
+  if (!id || Date.now() - ts > SESSION_TIMEOUT) id = newSessionId();
+  else sessionStorage.setItem(SESSION_TS_KEY, String(Date.now()));
   return id;
 }
 
@@ -59,6 +74,28 @@ function deviceType(): string {
   return "desktop";
 }
 
+/** 操作系统 */
+function osName(): string {
+  const ua = navigator.userAgent;
+  if (/Windows/i.test(ua)) return "Windows";
+  if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
+  if (/Mac/i.test(ua)) return "macOS";
+  if (/Android/i.test(ua)) return "Android";
+  if (/Linux/i.test(ua)) return "Linux";
+  return "Other";
+}
+
+/** 浏览器 */
+function browserName(): string {
+  const ua = navigator.userAgent;
+  if (/Edg\//i.test(ua)) return "Edge";
+  if (/OPR\//i.test(ua)) return "Opera";
+  if (/Chrome\//i.test(ua)) return "Chrome";
+  if (/Safari\//i.test(ua)) return "Safari";
+  if (/Firefox\//i.test(ua)) return "Firefox";
+  return "Other";
+}
+
 /** 流量渠道：直接访问 / 搜索引擎 / 社交媒体 / 其他外链 */
 function channel(): string {
   const ref = document.referrer;
@@ -67,9 +104,35 @@ function channel(): string {
     const host = new URL(ref).hostname.replace(/^www\./, "");
     if (/^(google|bing|baidu|duckduckgo|yahoo|yandex)\./.test(host)) return "search";
     if (/^(facebook|instagram|tiktok|twitter|x|linkedin|youtube|reddit)\./.test(host)) return "social";
+    if (/^(wa|api)\.whatsapp\.com$/.test(host) || host === "web.whatsapp.com") return "whatsapp";
     return "referral";
   } catch {
     return "referral";
+  }
+}
+
+/** UTM 归因：落地页抓取一次，整个会话携带（站内 hash 跳转不丢 query） */
+function utmParams(): Record<string, string> {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(UTM_KEY) ?? "{}");
+    if (saved && typeof saved === "object") return saved;
+  } catch {
+    /* ignore */
+  }
+  return {};
+}
+
+function captureUtm() {
+  try {
+    const sp = new URLSearchParams(location.search);
+    const picked: Record<string, string> = {};
+    for (const k of ["utm_source", "utm_medium", "utm_campaign"]) {
+      const v = sp.get(k);
+      if (v) picked[k] = v.slice(0, 120);
+    }
+    if (Object.keys(picked).length) sessionStorage.setItem(UTM_KEY, JSON.stringify(picked));
+  } catch {
+    /* ignore */
   }
 }
 
@@ -86,6 +149,7 @@ async function flushCloud() {
   const batch = queue.slice(0, MAX_BATCH);
   queue = queue.slice(MAX_BATCH);
   try {
+    const utm = utmParams();
     await fetch("/api/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -93,8 +157,11 @@ async function flushCloud() {
         sid: sessionId(),
         visitor: visitorId(),
         device: deviceType(),
+        os: osName(),
+        browser: browserName(),
         channel: channel(),
         lang: navigator.language.slice(0, 8),
+        utm,
         events: batch,
       }),
       keepalive: true,
@@ -108,34 +175,64 @@ async function flushCloud() {
   }
 }
 
-/* ---------- 页面结算：停留时长 + 滚动深度 ---------- */
+/* ---------- 页面结算：有效停留时长 + 滚动深度 ---------- */
 
-function settlePage() {
+/** 结算当前可见段（切 Tab / 最小化时不累计） */
+function settleSegment() {
+  if (document.visibilityState !== "visible") return;
+  visibleMs += Date.now() - segStart;
+}
+
+/**
+ * final=true：离开页面（翻页/关闭）——发滚动深度并标记已结算；
+ * final=false：仅切后台——先结算已积累的可见时长，可见后从 0 继续计。
+ */
+function settlePage(final: boolean) {
   if (settled) return;
-  settled = true;
-  const dwell = Date.now() - pageEnterAt;
+  settleSegment();
   if (currentPage) {
-    if (dwell > 1500) enqueueCloud({ type: "dwell", page: currentPage, value: dwell });
-    const bucket = maxScroll >= 100 ? 100 : maxScroll >= 75 ? 75 : maxScroll >= 50 ? 50 : maxScroll >= 25 ? 25 : 0;
-    if (bucket) enqueueCloud({ type: "scroll", page: currentPage, value: bucket });
+    if (visibleMs > 1500) {
+      enqueueCloud({ type: "dwell", page: currentPage, value: visibleMs });
+      visibleMs = 0; // 已上报，下一段重新累计
+    }
+    if (final) {
+      const bucket = maxScroll >= 100 ? 100 : maxScroll >= 75 ? 75 : maxScroll >= 50 ? 50 : maxScroll >= 25 ? 25 : 0;
+      if (bucket) enqueueCloud({ type: "scroll", page: currentPage, value: bucket });
+    }
   }
-  // 问卷放弃：页面关闭时还有未提交的草稿
-  try {
-    if (sessionStorage.getItem("longview-biz-draft"))
-      enqueueCloud({ type: "abandon", page: "#/business", meta: "business" });
-    if (sessionStorage.getItem("longview-leisure-draft"))
-      enqueueCloud({ type: "abandon", page: "#/leisure", meta: "leisure" });
-  } catch {
-    /* ignore */
+  if (final) {
+    settled = true;
+    // 问卷放弃：页面关闭时还有未提交的草稿
+    try {
+      if (sessionStorage.getItem("longview-biz-draft"))
+        enqueueCloud({ type: "form_abandon", page: "#/business", meta: "business" });
+      if (sessionStorage.getItem("longview-leisure-draft"))
+        enqueueCloud({ type: "form_abandon", page: "#/leisure", meta: "leisure" });
+    } catch {
+      /* ignore */
+    }
   }
 }
 
 function enterPage(page: string) {
   currentPage = page;
-  pageEnterAt = Date.now();
+  visibleMs = 0;
+  segStart = Date.now();
   maxScroll = 0;
   settled = false;
   enqueueCloud({ type: "page_view", page });
+  // 表单漏斗第一步：打开问卷（每个会话每个问卷只记一次）
+  if (page === "#/business" || page === "#/leisure") {
+    try {
+      const flag = `longview-fv-${page}`;
+      if (!sessionStorage.getItem(flag)) {
+        sessionStorage.setItem(flag, "1");
+        enqueueCloud({ type: "form_view", page });
+      }
+    } catch {
+      /* ignore */
+    }
+  }
 }
 
 function trackScroll() {
@@ -154,10 +251,11 @@ export function startTelemetry() {
   if (started) return;
   started = true;
 
+  captureUtm();
   enterPage(location.hash || "#/");
 
   window.addEventListener("hashchange", () => {
-    settlePage();
+    settlePage(true);
     enterPage(location.hash || "#/");
   });
 
@@ -184,17 +282,36 @@ export function startTelemetry() {
     });
   }, { capture: true });
 
-  // 离页结算 + 批量上报
+  // 表单漏斗第二步：聚焦表单输入框（只记字段名/类型，绝不记输入内容）
+  document.addEventListener("focusin", (e) => {
+    const el = e.target as HTMLElement;
+    if (!/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+    if ((el as HTMLInputElement).type === "password") return;
+    const id =
+      el.getAttribute("name") || el.getAttribute("placeholder") || el.getAttribute("aria-label") || el.tagName.toLowerCase();
+    enqueueCloud({
+      type: "form_field",
+      page: location.hash || "#/",
+      meta: String(id).replace(/\s+/g, " ").trim().slice(0, 40),
+    });
+  }, { capture: true });
+
+  // 切后台：结算当前可见段并暂停；回前台：开始新可见段
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
-      settlePage();
+      settlePage(false);
       void flushCloud();
+    } else {
+      segStart = Date.now();
     }
   });
   window.addEventListener("pagehide", () => {
-    settlePage();
+    settlePage(true);
     void flushCloud();
   });
 
-  setInterval(() => void flushCloud(), FLUSH_INTERVAL);
+  setInterval(() => {
+    sessionId(); // 续期会话时间戳
+    void flushCloud();
+  }, FLUSH_INTERVAL);
 }
