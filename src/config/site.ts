@@ -35,7 +35,7 @@ export const site = {
 
 export const hero = {
   video: "media/hero.mp4",
-  poster: "media/img0.jpg",
+  poster: "media/hero-poster.jpg",
   titleLines: ["Longview", "China"],
   chineseTagline: "龙观中国",
   subtitle:

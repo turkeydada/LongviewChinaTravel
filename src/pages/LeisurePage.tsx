@@ -58,7 +58,7 @@ export default function LeisurePage() {
           animate={{ scale: 1 }}
           transition={{ duration: 1.6, ease }}
           src="media/leisure-hero.mp4"
-          poster="media/img4.jpg"
+          poster="media/leisure-poster.jpg"
           autoPlay
           muted
           loop
