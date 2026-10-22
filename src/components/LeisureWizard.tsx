@@ -17,6 +17,7 @@ import { useI18n } from "@/lib/i18n";
 import { track } from "@/lib/analytics";
 import { sendLeadEmail } from "@/lib/mail";
 import { AddableList, DateWheels, iso } from "@/components/wizard-bits";
+import { Link } from "react-router-dom";
 
 /**
  * Leisure 分步引导向导
@@ -412,9 +413,9 @@ export function LeisureWizard() {
             <button type="button" onClick={reset} className="text-neutral-500 transition hover:text-white">
               {t("Submit another request")}
             </button>
-            <a href="#/" className="text-neutral-500 transition hover:text-white">
+            <Link to="/" className="text-neutral-500 transition hover:text-white">
               {t("Back to home")}
-            </a>
+            </Link>
           </div>
         </motion.div>
       </div>

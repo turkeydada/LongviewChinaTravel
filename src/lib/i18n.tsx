@@ -42,7 +42,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
     // 埋点：记录访客手动切换语言（初始语言不记）
-    enqueueCloud({ type: "lang_switch", page: location.hash || "#/", meta: l });
+    enqueueCloud({ type: "lang_switch", page: location.pathname || "/", meta: l });
   };
 
   const t = (s: string): string => {

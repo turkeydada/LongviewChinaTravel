@@ -205,13 +205,18 @@ function settlePage(final: boolean) {
     // 问卷放弃：页面关闭时还有未提交的草稿
     try {
       if (sessionStorage.getItem("longview-biz-draft"))
-        enqueueCloud({ type: "form_abandon", page: "#/business", meta: "business" });
+        enqueueCloud({ type: "form_abandon", page: "/business", meta: "business" });
       if (sessionStorage.getItem("longview-leisure-draft"))
-        enqueueCloud({ type: "form_abandon", page: "#/leisure", meta: "leisure" });
+        enqueueCloud({ type: "form_abandon", page: "/leisure", meta: "leisure" });
     } catch {
       /* ignore */
     }
   }
+}
+
+/** 当前页面标识：干净路径（BrowserRouter），首页为 "/" */
+function pageId(): string {
+  return location.pathname || "/";
 }
 
 function enterPage(page: string) {
@@ -222,7 +227,7 @@ function enterPage(page: string) {
   settled = false;
   enqueueCloud({ type: "page_view", page });
   // 表单漏斗第一步：打开问卷（每个会话每个问卷只记一次）
-  if (page === "#/business" || page === "#/leisure") {
+  if (page === "/business" || page === "/leisure") {
     try {
       const flag = `longview-fv-${page}`;
       if (!sessionStorage.getItem(flag)) {
@@ -252,11 +257,22 @@ export function startTelemetry() {
   started = true;
 
   captureUtm();
-  enterPage(location.hash || "#/");
+  enterPage(pageId());
 
-  window.addEventListener("hashchange", () => {
+  // BrowserRouter 的 pushState/replaceState 不触发原生事件，这里打补丁统一广播路由变化
+  const emitNav = () => window.dispatchEvent(new Event("longview-nav"));
+  for (const method of ["pushState", "replaceState"] as const) {
+    const orig = history[method].bind(history);
+    history[method] = (...args: Parameters<History["pushState"]>) => {
+      const r = orig(...args);
+      emitNav();
+      return r;
+    };
+  }
+  window.addEventListener("popstate", emitNav);
+  window.addEventListener("longview-nav", () => {
     settlePage(true);
-    enterPage(location.hash || "#/");
+    enterPage(pageId());
   });
 
   let scrollTick = false;
@@ -277,7 +293,7 @@ export function startTelemetry() {
     if (!text) return;
     enqueueCloud({
       type: "click",
-      page: location.hash || "#/",
+      page: pageId(),
       meta: `${el.tagName.toLowerCase()}:${text}`,
     });
   }, { capture: true });
@@ -291,7 +307,7 @@ export function startTelemetry() {
       el.getAttribute("name") || el.getAttribute("placeholder") || el.getAttribute("aria-label") || el.tagName.toLowerCase();
     enqueueCloud({
       type: "form_field",
-      page: location.hash || "#/",
+      page: pageId(),
       meta: String(id).replace(/\s+/g, " ").trim().slice(0, 40),
     });
   }, { capture: true });

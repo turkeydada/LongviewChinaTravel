@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Facebook, Instagram, Music2, Mail, Phone } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { footer, site } from "@/config/site";
 import { useI18n } from "@/lib/i18n";
 
@@ -17,12 +17,13 @@ const contactIcons: Record<string, typeof Mail> = { Mail, Phone };
 export function Footer() {
   const { t } = useI18n();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // 主页锚点 / 子界面直达；在非主页时先回主页再平滑滚动
   const goHomeThen = (hash: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     if (location.pathname !== "/") {
-      window.location.hash = `/`;
+      navigate("/");
       setTimeout(() => {
         document.querySelector(hash)?.scrollIntoView({ behavior: "smooth" });
       }, 350);

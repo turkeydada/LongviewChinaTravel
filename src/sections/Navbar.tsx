@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { site } from "@/config/site";
 import { useI18n } from "@/lib/i18n";
 import { LANGS } from "@/lib/locales";
@@ -41,6 +41,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useI18n();
 
   useEffect(() => {
@@ -73,7 +74,7 @@ export function Navbar() {
     if (location.pathname !== "/") {
       // 子页面：先回主页，再滚动（等页面渲染）
       setOpen(false);
-      window.location.hash = `/`;
+      navigate("/");
       setTimeout(() => scrollTo(hash, 0), 350);
     } else {
       scrollTo(hash, open ? 320 : 0);

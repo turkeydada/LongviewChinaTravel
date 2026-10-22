@@ -27,7 +27,7 @@ export function getSessionId(): string {
 }
 
 export function track(type: string, meta?: string) {
-  const page = location.hash || "#/";
+  const page = location.pathname || "/";
   try {
     const events = getEvents();
     events.push({

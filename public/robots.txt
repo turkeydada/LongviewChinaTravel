@@ -46,3 +46,6 @@ Disallow: /
 
 User-agent: FacebookBot
 Disallow: /
+
+# 站点地图：帮助搜索引擎完整收录所有页面
+Sitemap: https://longviewchinatravel.com/sitemap.xml
