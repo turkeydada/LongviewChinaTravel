@@ -58,6 +58,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       utmMedia,
       realLeads,
       abandonsAgg,
+      botSessions,
     ] = await Promise.all([
       // 总访问量 / 独立访客 / 会话数
       db.prepare(
@@ -198,6 +199,19 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       )
         .bind(since)
         .first<{ c: number }>(),
+      // 疑似机器人会话数（停留 <2s 且无任何交互）
+      db.prepare(
+        `SELECT COUNT(*) AS c FROM (
+           SELECT session_id FROM visit_log
+           WHERE ts > ? GROUP BY session_id
+           HAVING SUM(CASE WHEN type = 'dwell' THEN value ELSE 0 END) < 2000
+              AND SUM(CASE WHEN type = 'click' THEN 1 ELSE 0 END) = 0
+              AND SUM(CASE WHEN type IN ('form_view','form_field','form_submit','form_abandon','interest','journey')
+                           THEN 1 ELSE 0 END) = 0
+         )`
+      )
+        .bind(since)
+        .first<{ c: number }>(),
     ]);
 
     const vs = visitorSessions.results ?? [];
@@ -217,6 +231,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
           newPct: vs.length ? Math.round(((vs.length - returning) / vs.length) * 100) : 100,
           leads: realLeads?.c ?? 0,
           abandons: abandonsAgg?.c ?? 0,
+          bots: botSessions?.c ?? 0,
         },
         trend: trend.results ?? [],
         devices: devices.results ?? [],

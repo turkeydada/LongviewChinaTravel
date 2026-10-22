@@ -4,6 +4,7 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
+  Bot,
   ChevronDown,
   ChevronUp,
   CloudDownload,
@@ -48,6 +49,7 @@ type AnalyticsData = {
     newPct: number;
     leads: number;
     abandons: number;
+    bots: number;
   };
   trend: { d: string; c: number }[];
   devices: { k: string; c: number; u: number }[];
@@ -68,6 +70,7 @@ type SessionRow = {
   country: string; region: string; city: string; device: string; os: string; browser: string;
   channel: string; utm_source: string; utm_medium: string; lang: string;
   submitted: number; abandoned: number;
+  clicks: number; interactions: number; is_bot: number;
 };
 
 /** 单会话旅程事件（/api/session 单行） */
@@ -232,6 +235,7 @@ export default function AdminPage() {
   const [analyticsMsg, setAnalyticsMsg] = useState("");
   const [sessions, setSessions] = useState<SessionRow[] | null>(null);
   const [sessionsMsg, setSessionsMsg] = useState("");
+  const [showBots, setShowBots] = useState(false);
   const [expandedSid, setExpandedSid] = useState<string | null>(null);
   const [sessionDetail, setSessionDetail] = useState<Record<string, SessionEvent[]>>({});
   const [exporting, setExporting] = useState("");
@@ -624,7 +628,7 @@ export default function AdminPage() {
         {analytics && (
           <div className="mt-6 space-y-8">
             {/* ① 访客概览 */}
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-4">
               <StatCard label="总访问量" value={analytics.totals.views} />
               <StatCard label="独立访客" value={analytics.totals.visitors} />
               <StatCard label="会话数" value={analytics.totals.sessions} />
@@ -639,6 +643,11 @@ export default function AdminPage() {
                     ? Math.round((analytics.totals.abandons / (analytics.totals.leads + analytics.totals.abandons)) * 100)
                     : 0
                 }%`}
+              />
+              <StatCard
+                label="疑似机器人会话"
+                title="停留不足 2 秒且无任何点击/表单交互的会话，多为互联网自动扫描器，不代表真实客户"
+                value={analytics.totals.bots ?? 0}
               />
             </div>
 
@@ -821,6 +830,21 @@ export default function AdminPage() {
             访客会话明细（云端 · 近 30 天）
           </h2>
           <div className="flex items-center gap-4">
+            {sessions && (sessions.filter((s) => s.is_bot).length > 0 || showBots) && (
+              <button
+                onClick={() => setShowBots((v) => !v)}
+                className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition ${
+                  showBots
+                    ? "border-white/40 text-white"
+                    : "border-white/15 text-neutral-400 hover:text-white"
+                }`}
+              >
+                <Bot size={12} />
+                {showBots
+                  ? "隐藏机器人"
+                  : `显示机器人（${sessions.filter((s) => s.is_bot).length}）`}
+              </button>
+            )}
             <button
               onClick={() => void exportCsvCloud("visits")}
               disabled={!!exporting}
@@ -863,7 +887,7 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {sessions.map((s) => (
+                {sessions.filter((s) => showBots || !s.is_bot).map((s) => (
                   <Fragment key={s.sid}>
                     <tr className="border-b border-white/5 text-neutral-300">
                       <td className="px-4 py-3 text-neutral-400">
@@ -883,7 +907,9 @@ export default function AdminPage() {
                         {s.utm_source && <span className="ml-1 rounded bg-white/10 px-1.5 py-0.5 font-mono">{s.utm_source}</span>}
                       </td>
                       <td className="px-4 py-3">
-                        {s.submitted > 0 ? (
+                        {s.is_bot ? (
+                          <span className="rounded-full bg-neutral-500/15 px-2.5 py-1 text-xs text-neutral-400">疑似机器人</span>
+                        ) : s.submitted > 0 ? (
                           <span className="rounded-full bg-emerald-400/15 px-2.5 py-1 text-xs text-emerald-300">已提交</span>
                         ) : s.abandoned > 0 ? (
                           <span className="rounded-full bg-amber-400/15 px-2.5 py-1 text-xs text-amber-300">填了没提交</span>
@@ -930,10 +956,12 @@ export default function AdminPage() {
                     )}
                   </Fragment>
                 ))}
-                {sessions.length === 0 && (
+                {sessions.filter((s) => showBots || !s.is_bot).length === 0 && (
                   <tr>
                     <td colSpan={8} className="px-4 py-10 text-center text-neutral-600">
-                      近 30 天暂无访客会话（建表并重新部署后开始收集）。
+                      {sessions.length > 0
+                        ? "没有真实访客会话——列表里的全部是疑似机器人（点右上角「显示机器人」可查看）。"
+                        : "近 30 天暂无访客会话（建表并重新部署后开始收集）。"}
                     </td>
                   </tr>
                 )}

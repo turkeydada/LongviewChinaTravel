@@ -5,7 +5,8 @@
  * ---------------------------------------------------------------
  * 鉴权：X-Admin-Token == 环境变量 ADMIN_TOKEN。
  * 按会话聚合，最近会话在前，默认 50 条，可用 ?limit= 调整（≤100）、?offset= 翻页。
- * 每条含：时间、地理、设备/系统/浏览器、渠道、UTM、页数、停留时长、表单结果。
+ * 每条含：时间、地理、设备/系统/浏览器、渠道、UTM、页数、停留时长、表单结果、
+ * 疑似机器人标记（停留 <2s 且无任何点击/表单/兴趣交互 → is_bot=1）。
  */
 
 interface Env {
@@ -57,7 +58,10 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
          MAX(utm_medium) AS utm_medium,
          MAX(lang) AS lang,
          SUM(CASE WHEN type = 'form_submit' THEN 1 ELSE 0 END) AS submitted,
-         SUM(CASE WHEN type = 'form_abandon' THEN 1 ELSE 0 END) AS abandoned
+         SUM(CASE WHEN type = 'form_abandon' THEN 1 ELSE 0 END) AS abandoned,
+         SUM(CASE WHEN type = 'click' THEN 1 ELSE 0 END) AS clicks,
+         SUM(CASE WHEN type IN ('form_view','form_field','form_submit','form_abandon','interest','journey')
+                  THEN 1 ELSE 0 END) AS interactions
        FROM visit_log
        WHERE ts > ?
        GROUP BY session_id
@@ -70,10 +74,17 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         country: string; region: string; city: string; device: string; os: string; browser: string;
         channel: string; utm_source: string; utm_medium: string; lang: string;
         submitted: number; abandoned: number;
+        clicks: number; interactions: number;
       }>();
 
+    // 疑似机器人：停留 <2 秒 且 没有任何点击/表单/兴趣交互（纯扫描器行为）
+    const sessions = (rows.results ?? []).map((s) => ({
+      ...s,
+      is_bot: s.dwell_ms < 2000 && s.clicks === 0 && s.interactions === 0 ? 1 : 0,
+    }));
+
     return Response.json(
-      { success: true, sessions: rows.results ?? [] },
+      { success: true, sessions },
       { headers: { "Cache-Control": "no-store" } }
     );
   } catch {
