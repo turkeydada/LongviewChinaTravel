@@ -2,12 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script>
-      // 旧版 #/ 链接兼容（早期分享出去的 hash 链接自动跳到干净路径，兼容老书签/老消息）
-      if (location.hash.startsWith("#/")) {
-        history.replaceState(null, "", location.hash.slice(1) + location.search);
-      }
-    </script>
+    <script src="/hash-compat.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
