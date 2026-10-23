@@ -12,7 +12,7 @@ export function Manifesto() {
     <section id="intro" className="relative bg-neutral-950 py-24 text-white sm:py-28">
       <div className="mx-auto max-w-4xl px-6 text-center">
         <motion.img
-          src="media/logo-full.png"
+          src="/media/logo-full.png"
           alt="Longview China Travel"
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -34,8 +34,8 @@ export const site = {
 };
 
 export const hero = {
-  video: "media/hero.mp4",
-  poster: "media/hero-poster.jpg",
+  video: "/media/hero.mp4",
+  poster: "/media/hero-poster.jpg",
   titleLines: ["Longview", "China"],
   chineseTagline: "龙观中国",
   subtitle:
@@ -80,7 +80,7 @@ export const purpose = {
       subtitle: "入境休闲旅游",
       description:
         "Custom holidays, classic routes and hidden gems. We design the trip, you collect the memories.",
-      image: "media/img4.jpg",
+      image: "/media/img4.jpg",
       bullets: ["Custom itineraries & private tours", "Hotels, drivers & bilingual guides", "Tickets, shows & local experiences"],
     },
     {
@@ -89,7 +89,7 @@ export const purpose = {
       subtitle: "商业差旅",
       description:
         "Meetings, factory visits, exhibitions and trade fairs — handled with precision and discretion.",
-      image: "media/img7.jpg",
+      image: "/media/img7.jpg",
       bullets: ["Meetings, exhibitions & factory visits", "Interpreters & business etiquette support", "Flights, hotels & ground transport"],
     },
   ],
@@ -204,14 +204,14 @@ export const wizardBusiness: WizardStep[] = [
 /** Business 分步引导内容配置（src/components/BusinessWizard.tsx 使用） */
 export const businessContent = {  /** 目标城市九宫格：image 留空则用城市名做视觉占位，有素材后填图片路径 */
   cities: [
-    { name: "Guangzhou", zh: "广州", image: "media/cities/guangzhou.jpg" },
-    { name: "Shanghai", zh: "上海", image: "media/cities/shanghai.jpg" },
-    { name: "Shenzhen", zh: "深圳", image: "media/cities/shenzhen.jpg" },
-    { name: "Dongguan", zh: "东莞", image: "media/cities/dongguan.jpg" },
-    { name: "Yiwu", zh: "义乌", image: "media/cities/yiwu.jpg" },
-    { name: "Ningbo", zh: "宁波", image: "media/cities/ningbo.jpg" },
-    { name: "Qingdao", zh: "青岛", image: "media/cities/qingdao.jpg" },
-    { name: "Beijing", zh: "北京", image: "media/cities/beijing.jpg" },
+    { name: "Guangzhou", zh: "广州", image: "/media/cities/guangzhou.jpg" },
+    { name: "Shanghai", zh: "上海", image: "/media/cities/shanghai.jpg" },
+    { name: "Shenzhen", zh: "深圳", image: "/media/cities/shenzhen.jpg" },
+    { name: "Dongguan", zh: "东莞", image: "/media/cities/dongguan.jpg" },
+    { name: "Yiwu", zh: "义乌", image: "/media/cities/yiwu.jpg" },
+    { name: "Ningbo", zh: "宁波", image: "/media/cities/ningbo.jpg" },
+    { name: "Qingdao", zh: "青岛", image: "/media/cities/qingdao.jpg" },
+    { name: "Beijing", zh: "北京", image: "/media/cities/beijing.jpg" },
   ],
   purposes: [
     { en: "Exhibition / trade fair", zh: "参加展会" },
@@ -267,14 +267,14 @@ export const businessContent = {  /** 目标城市九宫格：image 留空则用
 export const leisureContent = {
   /** 目标城市大卡片区：image 留空则用城市中文名做视觉占位 */
   cities: [
-    { name: "Shanghai", zh: "上海", image: "media/cities/shanghai.jpg" },
-    { name: "Beijing", zh: "北京", image: "media/cities/beijing.jpg" },
-    { name: "Qingdao", zh: "青岛", image: "media/cities/qingdao.jpg" },
-    { name: "Harbin", zh: "哈尔滨", image: "media/cities/harbin.jpg" },
-    { name: "Zhangjiajie", zh: "张家界", image: "media/cities/zhangjiajie.jpg" },
-    { name: "Shenzhen", zh: "深圳", image: "media/cities/shenzhen.jpg" },
-    { name: "Chongqing", zh: "重庆", image: "media/cities/chongqing.jpg" },
-    { name: "Guangzhou", zh: "广州", image: "media/cities/guangzhou.jpg" },
+    { name: "Shanghai", zh: "上海", image: "/media/cities/shanghai.jpg" },
+    { name: "Beijing", zh: "北京", image: "/media/cities/beijing.jpg" },
+    { name: "Qingdao", zh: "青岛", image: "/media/cities/qingdao.jpg" },
+    { name: "Harbin", zh: "哈尔滨", image: "/media/cities/harbin.jpg" },
+    { name: "Zhangjiajie", zh: "张家界", image: "/media/cities/zhangjiajie.jpg" },
+    { name: "Shenzhen", zh: "深圳", image: "/media/cities/shenzhen.jpg" },
+    { name: "Chongqing", zh: "重庆", image: "/media/cities/chongqing.jpg" },
+    { name: "Guangzhou", zh: "广州", image: "/media/cities/guangzhou.jpg" },
   ],
   /** 每个城市的景点卡片：desc 为一句话吸引文案 */
   attractionsByCity: {

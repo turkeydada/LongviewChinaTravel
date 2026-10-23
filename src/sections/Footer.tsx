@@ -117,7 +117,7 @@ export function Footer() {
 
         {/* 社交媒体 */}
         <div className="mt-16 flex flex-col items-center gap-6 border-t border-white/10 py-10 sm:flex-row sm:justify-between">
-          <img src="media/logo-full.png" alt="Longview China Travel" className="h-14 w-auto" />
+          <img src="/media/logo-full.png" alt="Longview China Travel" className="h-14 w-auto" />
           <p className="text-sm text-neutral-600">{site.name}</p>
           <div className="flex items-center gap-3">
             {site.socials.map((s) => {

@@ -97,7 +97,7 @@ export function Navbar() {
     >
       <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
         <Link to="/" className="flex shrink-0 items-center gap-2.5 text-sm font-semibold tracking-wide text-white" onClick={() => setOpen(false)}>
-          <img src="media/logo-mark.png" alt="Longview China Travel logo" className="h-7 w-auto" />
+          <img src="/media/logo-mark.png" alt="Longview China Travel logo" className="h-7 w-auto" />
           <span>{site.name}</span>
         </Link>
 

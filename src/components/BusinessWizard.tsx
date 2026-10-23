@@ -442,7 +442,7 @@ export function BusinessWizard() {
               >
                 <div className="relative flex aspect-[4/3] flex-col items-center justify-center gap-2 overflow-hidden bg-white/5">
                   <img
-                    src="media/cities/other.jpg"
+                    src="/media/cities/other.jpg"
                     alt="Other"
                     className="absolute inset-0 h-full w-full object-cover opacity-60"
                   />

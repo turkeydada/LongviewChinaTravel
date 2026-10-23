@@ -46,8 +46,8 @@ export default function BusinessPage() {
           initial={{ scale: 1.15 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.6, ease }}
-          src="media/business-hero.mp4"
-          poster="media/img7.jpg"
+          src="/media/business-hero.mp4"
+          poster="/media/img7.jpg"
           autoPlay
           muted
           loop

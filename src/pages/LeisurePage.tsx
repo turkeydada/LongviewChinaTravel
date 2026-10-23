@@ -11,12 +11,12 @@ import { track } from "@/lib/analytics";
 
 /** Leisure 画廊：白天海岸/城市照片 */
 const leisureGallery = [
-  "media/gl0.jpg",
-  "media/gl1.jpg",
-  "media/gl2.jpg",
-  "media/gl3.jpg",
-  "media/gl4.jpg",
-  "media/gl5.jpg",
+  "/media/gl0.jpg",
+  "/media/gl1.jpg",
+  "/media/gl2.jpg",
+  "/media/gl3.jpg",
+  "/media/gl4.jpg",
+  "/media/gl5.jpg",
 ];
 
 const highlights = [
@@ -57,8 +57,8 @@ export default function LeisurePage() {
           initial={{ scale: 1.15 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.6, ease }}
-          src="media/leisure-hero.mp4"
-          poster="media/leisure-poster.jpg"
+          src="/media/leisure-hero.mp4"
+          poster="/media/leisure-poster.jpg"
           autoPlay
           muted
           loop
