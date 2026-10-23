@@ -1,3 +1,0 @@
-# Cloudflare Pages SPA 兜底：所有路径都返回 index.html（200），前端路由接管。
-# API 与静态资源优先匹配真实文件，不会走到这条规则。
-/*  /index.html  200
