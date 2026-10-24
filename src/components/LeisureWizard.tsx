@@ -572,11 +572,33 @@ export function LeisureWizard() {
                     : "border-dashed border-white/20 hover:-translate-y-1 hover:border-white/50"
                 }`}
               >
-                <div className="relative flex aspect-[4/3] flex-col items-center justify-center gap-2 bg-white/5">
-                  <MapPin size={28} strokeWidth={1.5} className="text-neutral-500" />
-                  <p className="text-base font-semibold text-neutral-300">{t("Other")}</p>
-                  {lang !== "zh" && <p className="text-sm text-neutral-600">其他</p>}
-                </div>
+                {leisureContent.attractionOtherImage?.[cityKey] ? (
+                  <div className="relative aspect-[4/3]">
+                    <img
+                      src={leisureContent.attractionOtherImage[cityKey]}
+                      alt={t("Other")}
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+                    <span
+                      className={`absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full transition-all duration-300 ${
+                        sel.includes("Other") ? "bg-white text-black opacity-100" : "bg-white/10 text-white/0"
+                      }`}
+                    >
+                      <Check size={14} />
+                    </span>
+                    <div className="absolute bottom-4 left-5 right-5">
+                      <p className="text-base font-semibold leading-snug text-white">{t("Other")}</p>
+                      {lang !== "zh" && <p className="mt-0.5 text-xs leading-snug text-white/60">其他</p>}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative flex aspect-[4/3] flex-col items-center justify-center gap-2 bg-white/5">
+                    <MapPin size={28} strokeWidth={1.5} className="text-neutral-500" />
+                    <p className="text-base font-semibold text-neutral-300">{t("Other")}</p>
+                    {lang !== "zh" && <p className="text-sm text-neutral-600">其他</p>}
+                  </div>
+                )}
               </button>
             </div>
             {sel.includes("Other") && (

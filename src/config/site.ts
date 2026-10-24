@@ -279,16 +279,20 @@ export const leisureContent = {
   /** 每个城市的景点卡片：desc 为一句话吸引文案 */
   attractionsByCity: {
     Qingdao: [
-      { name: "May Fourth Square", zh: "五四广场", desc: "Red sculpture by the sea — Qingdao's iconic skyline at sunset.", image: "" },
-      { name: "St. Michael's Cathedral", zh: "圣弥厄尔大教堂", desc: "A twin-spired gem tucked in old-town streets, perfect for photos.", image: "" },
-      { name: "Naval Museum", zh: "海军博物馆", desc: "Walk the decks of real warships — China's maritime glory up close.", image: "" },
-      { name: "Badaguan", zh: "八大关", desc: "European villas under old trees — the most romantic corner of Qingdao.", image: "" },
-      { name: "Zhanqiao Pier", zh: "栈桥", desc: "The 440m pier into the bay, with seagulls circling Huilan Pavilion.", image: "" },
-      { name: "Tsingtao Beer Museum", zh: "青岛啤酒博物馆", desc: "Where China's famous beer was born — taste it fresh at the source.", image: "" },
-      { name: "Taidong Pedestrian Street", zh: "台东步行街", desc: "Qingdao's liveliest night market — street food till midnight.", image: "" },
-      { name: "Laoshan Scenic Area", zh: "崂山风景区", desc: "Sacred Taoist mountains rising straight from the sea — hike above clouds.", image: "" },
+      { name: "May Fourth Square", zh: "五四广场", desc: "Red sculpture by the sea — Qingdao's iconic skyline at sunset.", image: "/media/attractions/qingdao/may-fourth-square.webp" },
+      { name: "St. Michael's Cathedral", zh: "圣弥厄尔大教堂", desc: "A twin-spired gem tucked in old-town streets, perfect for photos.", image: "/media/attractions/qingdao/st-michaels-cathedral.webp" },
+      { name: "Naval Museum", zh: "海军博物馆", desc: "Walk the decks of real warships — China's maritime glory up close.", image: "/media/attractions/qingdao/naval-museum.webp" },
+      { name: "Badaguan", zh: "八大关", desc: "European villas under old trees — the most romantic corner of Qingdao.", image: "/media/attractions/qingdao/badaguan.webp" },
+      { name: "Zhanqiao Pier", zh: "栈桥", desc: "The 440m pier into the bay, with seagulls circling Huilan Pavilion.", image: "/media/attractions/qingdao/zhanqiao-pier.webp" },
+      { name: "Tsingtao Beer Museum", zh: "青岛啤酒博物馆", desc: "Where China's famous beer was born — taste it fresh at the source.", image: "/media/attractions/qingdao/tsingtao-beer-museum.webp" },
+      { name: "Taidong Pedestrian Street", zh: "台东步行街", desc: "Qingdao's liveliest night market — street food till midnight.", image: "/media/attractions/qingdao/taidong-street.webp" },
+      { name: "Laoshan Scenic Area", zh: "崂山风景区", desc: "Sacred Taoist mountains rising straight from the sea — hike above clouds.", image: "/media/attractions/qingdao/laoshan.webp" },
     ],
   } as Record<string, { name: string; zh: string; desc: string; image?: string }[]>,
+  /** 景点步骤里「其他」卡片的背景图（按城市配置，无配置则显示默认虚线卡片） */
+  attractionOtherImage: {
+    Qingdao: "/media/attractions/qingdao/other.webp",
+  } as Record<string, string>,
   services: [
     { en: "Itinerary design", zh: "行程定制" },
     { en: "Day tours", zh: "一日游" },
