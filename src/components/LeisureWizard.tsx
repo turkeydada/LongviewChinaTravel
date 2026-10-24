@@ -681,8 +681,68 @@ export function LeisureWizard() {
         const toggle = (en: string) =>
           setSel(sel.includes(en) ? sel.filter((x) => x !== en) : [...sel, en]);
 
+        const isInterests = !isPersonnel && key === "interests";
+
         return (
           <div>
+            {isInterests ? (
+            /* 兴趣偏好：图片卡片网格 */
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+              {opts.map((o) => {
+                const on = sel.includes(o.en);
+                const opt = o as { en: string; zh: string; image?: string };
+                return (
+                  <button
+                    key={o.en}
+                    type="button"
+                    onClick={() => toggle(o.en)}
+                    className={`group relative overflow-hidden rounded-2xl border text-left transition-all duration-300 ${
+                      on
+                        ? "border-white"
+                        : "border-white/10 hover:-translate-y-1 hover:border-white/40"
+                    }`}
+                  >
+                    <div className="relative aspect-[4/3] bg-gradient-to-br from-neutral-800 via-neutral-900 to-black">
+                      {opt.image ? (
+                        <img src={opt.image} alt={o.en} className="h-full w-full object-cover" loading="lazy" />
+                      ) : (
+                        <span className="absolute inset-0 flex items-center justify-center text-4xl font-semibold tracking-tight text-white/10 transition group-hover:text-white/20">
+                          {o.zh.slice(0, 2)}
+                        </span>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+                      <span
+                        className={`absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full transition-all duration-300 ${
+                          on ? "bg-white text-black opacity-100" : "bg-white/10 text-white/0"
+                        }`}
+                      >
+                        <Check size={13} />
+                      </span>
+                      <div className="absolute bottom-3 left-4 right-4">
+                        <p className="text-sm font-semibold leading-snug text-white">{t(o.en)}</p>
+                        {lang !== "zh" && <p className="mt-0.5 text-[11px] leading-snug text-white/60">{o.zh}</p>}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => toggle("Other")}
+                className={`relative overflow-hidden rounded-2xl border text-left transition-all duration-300 ${
+                  otherSel
+                    ? "border-white"
+                    : "border-dashed border-white/20 hover:-translate-y-1 hover:border-white/50"
+                }`}
+              >
+                <div className="relative flex aspect-[4/3] flex-col items-center justify-center gap-2 bg-white/5">
+                  <MapPin size={26} strokeWidth={1.5} className="text-neutral-500" />
+                  <p className="text-sm font-semibold text-neutral-300">{t("Other")}</p>
+                  {lang !== "zh" && <p className="text-[11px] text-neutral-600">其他</p>}
+                </div>
+              </button>
+            </div>
+            ) : (
             <div className="flex flex-wrap gap-2.5">
               {opts.map((o) => {
                 const on = sel.includes(o.en);
@@ -719,6 +779,7 @@ export function LeisureWizard() {
                 )}
               </button>
             </div>
+            )}
 
             {/* 语言 / 特殊技能备注（选中后必填） */}
             {isPersonnel && sel.includes("Language requirement") && (

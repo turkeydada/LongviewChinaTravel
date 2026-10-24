@@ -1449,7 +1449,7 @@ function LeisureOptionManager() {
           if (p.note === "language" || p.note === "skills") row.note = p.note;
           return row;
         }),
-        interests: data.interests.map((s) => ({ en: s.en ?? "", zh: s.zh ?? "" })),
+        interests: data.interests.map((s) => ({ en: s.en ?? "", zh: s.zh ?? "", image: s.image ?? "" })),
         personnelServices: [...data.personnelServices],
         attractionsByCity,
       },
